@@ -1,0 +1,193 @@
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ----------------------------------------------------
+   1. ESTILOS DE APP NATIVA (Bloqueo de gestos web)
+---------------------------------------------------- */
+html {
+  /* Evita el rebote elástico al scrollear al tope */
+  overscroll-behavior-y: none;
+  /* Altura dinámica exacta (ignora barras de navegador) */
+  height: 100dvh; 
+  /* Evita zoom accidental en iOS */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  /* Fondo base y altura completa */
+  @apply bg-base-200 text-base-content antialiased;
+  height: 100%;
+  width: 100%;
+  overflow: hidden; /* Controlamos el scroll por componente */
+
+  /* BLOQUEO DE SELECCIÓN (Sensación de App) */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  /* Elimina el cuadro azul al tocar botones en Android/iOS */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Permitir seleccionar texto SOLO donde es necesario (inputs) */
+input, textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+#root {
+  /* Ocupa toda la pantalla disponible */
+  @apply h-full w-screen flex flex-col;
+}
+
+/* ----------------------------------------------------
+   2. CLASES UTILITARIAS PERSONALIZADAS
+---------------------------------------------------- */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Animación táctil para botones (Feedback físico) */
+.btn:active {
+  transform: scale(0.95);
+  transition: transform 0.1s;
+}
+
+/* ----------------------------------------------------
+   3. DEFINICIÓN DE TEMAS (DaisyUI v5)
+---------------------------------------------------- */
+@layer base {
+  /* Tema Claro: dulce-light */
+  :root[data-theme="dulce-light"] {
+    --color-base-100: oklch(100% 0 0);
+    --color-base-200: oklch(93% 0 0);
+    --color-base-300: oklch(86% 0 0);
+    --color-base-content: oklch(27.807% 0.029 256.847);
+    --color-primary: oklch(37.45% 0.189 325.02);
+    --color-primary-content: oklch(87.49% 0.037 325.02);
+    --color-secondary: oklch(53.92% 0.162 241.36);
+    --color-secondary-content: oklch(90.784% 0.032 241.36);
+    --color-accent: oklch(75.98% 0.204 56.72);
+    --color-accent-content: oklch(15.196% 0.04 56.72);
+    --color-neutral: oklch(27.807% 0.029 256.847);
+    --color-neutral-content: oklch(85.561% 0.005 256.847);
+    --color-info: oklch(72.06% 0.191 231.6);
+    --color-info-content: oklch(0% 0 0);
+    --color-success: oklch(64.8% 0.15 160);
+    --color-success-content: oklch(0% 0 0);
+    --color-warning: oklch(84.71% 0.199 83.87);
+    --color-warning-content: oklch(0% 0 0);
+    --color-error: oklch(71.76% 0.221 22.18);
+    --color-error-content: oklch(0% 0 0);
+    --radius-selector: 1rem;
+    --radius-field: 0.5rem;
+    --radius-box: 1rem;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 1;
+    --noise: 0;
+  }
+
+  /* Tema Oscuro: dulce-dark */
+  :root[data-theme="dulce-dark"] {
+    --color-base-100: oklch(14% 0.004 49.25);
+    --color-base-200: oklch(21% 0.006 56.043);
+    --color-base-300: oklch(26% 0.007 34.298);
+    --color-base-content: oklch(97% 0.001 106.424);
+    --color-primary: oklch(0% 0 0);
+    --color-primary-content: oklch(100% 0 0);
+    --color-secondary: oklch(80% 0.105 251.813);
+    --color-secondary-content: oklch(28% 0.091 267.935);
+    --color-accent: oklch(80% 0.105 251.813);
+    --color-accent-content: oklch(28% 0.091 267.935);
+    --color-neutral: oklch(37% 0.01 67.558);
+    --color-neutral-content: oklch(98% 0.001 106.423);
+    --color-info: oklch(58% 0.158 241.966);
+    --color-info-content: oklch(97% 0.013 236.62);
+    --color-success: oklch(60% 0.118 184.704);
+    --color-success-content: oklch(98% 0.014 180.72);
+    --color-warning: oklch(68% 0.162 75.834);
+    --color-warning-content: oklch(98% 0.026 102.212);
+    --color-error: oklch(59% 0.249 0.584);
+    --color-error-content: oklch(97% 0.014 343.198);
+    --radius-selector: 2rem;
+    --radius-field: 0.25rem;
+    --radius-box: 0.25rem;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 1;
+    --noise: 1;
+  }
+}
+
+/* ----------------------------------------------------
+   4. CONFIGURACIÓN DE IMPRESIÓN (TICKET)
+---------------------------------------------------- */
+@media print {
+  #root {
+    display: none !important;
+  }
+
+  #receipt-print-area {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background-color: white;
+    color: black;
+    padding: 0;
+    margin: 0;
+  }
+
+  @page {
+    size: 58mm auto; 
+    margin: 0mm;     
+  }
+
+  .print-text {
+    font-family: 'Courier New', Courier, monospace; 
+    font-size: 12px;
+    line-height: 1.2;
+    color: black !important;
+  }
+  .print-bold { font-weight: 900; }
+  .print-center { text-align: center; }
+  .print-right { text-align: right; }
+  .print-line { border-bottom: 1px dashed black; margin: 5px 0; }
+}
+/* 1. Relleno para que el contenido no quede bajo el Notch (Arriba) */
+.safe-pt {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* 2. Relleno para que el contenido no quede bajo la Línea (Abajo) */
+.safe-pb {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 3. Margen (alternativa si no quieres padding) */
+.safe-mt {
+  margin-top: env(safe-area-inset-top);
+}
+.safe-mb {
+  margin-bottom: env(safe-area-inset-bottom);
+}
+
+/* 4. Altura total real considerando áreas seguras */
+.h-safe-screen {
+  min-height: 100dvh; /* Altura dinámica */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
