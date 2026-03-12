@@ -152,40 +152,45 @@ export const ModifiersManager: React.FC = () => {
     if (loading) return <div className="p-10 text-center"><span className="loading loading-spinner text-secondary"></span></div>;
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center bg-base-200/50 p-4 rounded-xl border border-base-300">
-                <div>
-                    <h3 className="text-xl font-bold">Gestor de Ingredientes</h3>
-                    <p className="text-sm opacity-70">Administra sabores, toppings y extras de todos tus productos.</p>
-                </div>
-                <button 
-                    onClick={() => setEditingMod({ id: '', name: '', price: 0, group: '', trackStock: false, disabledIn: [] })}
-                    className="btn btn-secondary btn-sm"
-                >
-                    + Nuevo Ingrediente
-                </button>
-            </div>
+      <div className="space-y-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-base-200/50 p-4 rounded-xl border border-base-300">
+              <h3 className="text-xl font-bold">Ingredientes</h3>
+              <button 
+                  onClick={() => setEditingMod({ id: '', name: '', price: 0, group: '', trackStock: false, disabledIn: [] })}
+                  className="btn btn-secondary btn-sm w-full sm:w-auto"
+              >
+                  + Nuevo Ingrediente
+              </button>
+          </div>
 
-            {/* Agrupamos por Lista para que sea fácil de leer */}
-            {groups.map(group => (
-                <div key={group.id} className="space-y-3">
-                    <h4 className="text-sm font-black uppercase tracking-widest text-secondary/70 ml-1">{group.name}</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                        {modifiers.filter(m => m.group === group.id).map(mod => (
-                            <div key={mod.id} className="bg-base-100 border border-base-300 rounded-xl p-3 flex justify-between items-center hover:shadow-sm transition-all">
-                                <div>
-                                    <div className="font-bold text-sm">{mod.name}</div>
-                                    <div className="text-xs opacity-50">{mod.price > 0 ? `+$${mod.price}` : 'Sin costo'}</div>
-                                </div>
-                                <div className="flex gap-1">
-                                    <button onClick={() => setEditingMod(mod)} className="btn btn-square btn-ghost btn-xs">✏️</button>
-                                    <button onClick={() => handleDelete(mod.id)} className="btn btn-square btn-ghost btn-xs text-error">🗑️</button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            ))}
-        </div>
-    );
+          {groups.map(group => (
+              <div key={group.id} className="space-y-3">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-secondary/70 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-secondary"></span>
+                      {group.name}
+                  </h4>
+                  
+                  {/* Grid responsivo: 1 col en movil, 2 en tablet, 4 en PC */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {modifiers.filter(m => m.group === group.id).map(mod => (
+                          <div key={mod.id} className="group bg-base-100 border border-base-300 rounded-2xl p-3 flex justify-between items-center hover:border-secondary/50 transition-all">
+                              <div className="flex flex-col">
+                                  <span className="font-bold text-sm">{mod.name}</span>
+                                  <div className="flex items-center gap-2">
+                                      <span className="text-[10px] opacity-60">{mod.price > 0 ? `+$${mod.price}` : 'Gratis'}</span>
+                                      {mod.trackStock && <span className="badge badge-xs badge-info text-[9px]">📦 Stock</span>}
+                                  </div>
+                              </div>
+                              <div className="flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button onClick={() => setEditingMod(mod)} className="btn btn-square btn-ghost btn-sm">✏️</button>
+                                  <button onClick={() => handleDelete(mod.id)} className="btn btn-square btn-ghost btn-sm text-error">🗑️</button>
+                              </div>
+                          </div>
+                      ))}
+                  </div>
+              </div>
+          ))}
+          {renderEditModal()}
+      </div>
+  );
 };

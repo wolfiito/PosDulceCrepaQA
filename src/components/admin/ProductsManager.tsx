@@ -257,50 +257,57 @@ export const ProductsManager: React.FC = () => {
     if (loading) return <div className="p-10 text-center"><span className="loading loading-spinner loading-lg text-primary"></span></div>;
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-wrap justify-between items-center gap-4 bg-base-200/50 p-4 rounded-xl border border-base-300">
-                <div>
-                    <h3 className="text-xl font-bold">Gestor de Productos</h3>
-                    <p className="text-sm opacity-70">Crea, edita precios y controla en qué sucursales aparece cada producto.</p>
-                </div>
-                <div className="flex gap-2">
-                    <button onClick={() => openNewItem('FIXED')} className="btn btn-primary btn-sm">+ Producto Directo</button>
-                    <button onClick={() => openNewItem('VARIANT')} className="btn btn-secondary btn-sm">+ Prod. con Tamaños</button>
-                </div>
-            </div>
+      <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-base-200/50 p-4 rounded-xl border border-base-300">
+              <div>
+                  <h3 className="text-xl font-bold">Gestor de Productos</h3>
+                  <p className="text-xs opacity-70">Precios y disponibilidad por sucursal.</p>
+              </div>
+              <div className="flex gap-2 w-full sm:w-auto">
+                  <button onClick={() => openNewItem('FIXED')} className="btn btn-primary btn-sm flex-1 sm:flex-none">+ Fijo</button>
+                  <button onClick={() => openNewItem('VARIANT')} className="btn btn-secondary btn-sm flex-1 sm:flex-none">+ Tamaños</button>
+              </div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {items.map(item => {
-                    const isVariant = 'variants' in item;
-                    const displayPrice = isVariant ? item.variants[0]?.price : item.price;
-                    
-                    return (
-                        <div key={item.id} className="card bg-base-100 border border-base-300 shadow-sm hover:shadow-md transition-all">
-                            <div className="card-body p-4">
-                                <div className="flex justify-between items-start mb-2">
-                                    <h4 className="font-bold leading-tight">{item.name}</h4>
-                                    <span className="badge badge-sm badge-ghost opacity-70">{item.category}</span>
-                                </div>
-                                <div className="text-xl font-black text-primary mb-2">
-                                    {isVariant && <span className="text-xs font-normal text-base-content opacity-70 mr-1">Desde</span>}
-                                    ${displayPrice}
-                                </div>
-                                <div className="flex gap-1 flex-wrap mb-4">
-                                    {item.modifierGroups?.map(mg => (
-                                        <span key={mg} className="badge badge-xs badge-info opacity-70">{modGroups.find(m => m.id === mg)?.name || mg}</span>
-                                    ))}
-                                </div>
-                                <div className="flex justify-between mt-auto pt-3 border-t border-base-100">
-                                    <button onClick={() => setEditingItem(item)} className="btn btn-sm btn-ghost text-primary">✏️ Editar</button>
-                                    <button onClick={() => handleDelete(item.id)} className="btn btn-sm btn-ghost text-error">🗑️</button>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-            
-            {renderEditModal()}
-        </div>
-    );
+          {/* Listado Responsive */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {items.map(item => (
+                  <div key={item.id} className="card bg-base-100 border border-base-300 shadow-sm hover:shadow-md transition-all">
+                      <div className="card-body p-4">
+                          <div className="flex justify-between items-start">
+                              <h4 className="font-bold text-base leading-tight pr-2">{item.name}</h4>
+                              <span className="badge badge-outline badge-xs opacity-50 uppercase">{item.category}</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 mt-2">
+                              <span className="text-xl font-black text-primary">
+                                  ${'variants' in item ? item.variants[0]?.price : item.price}
+                              </span>
+                              {'variants' in item && <span className="text-[10px] opacity-50">(Precio base)</span>}
+                          </div>
+
+                          {/* Indicadores de Sucursal rápidos */}
+                          <div className="flex gap-2 mt-3">
+                              {branches.map(b => {
+                                  const isOff = item.disabledIn?.includes(b.id);
+                                  return (
+                                      <div key={b.id} className={`badge badge-xs ${isOff ? 'badge-ghost opacity-30' : 'badge-success text-white'}`}>
+                                          {b.name.substring(0,3)}
+                                      </div>
+                                  );
+                              })}
+                          </div>
+
+                          <div className="flex justify-between mt-4 pt-3 border-t border-base-200">
+                              <button onClick={() => setEditingItem(item)} className="btn btn-sm btn-ghost text-primary flex-1">✏️ Editar</button>
+                              <button onClick={() => handleDelete(item.id)} className="btn btn-sm btn-ghost text-error">🗑️</button>
+                          </div>
+                      </div>
+                  </div>
+              ))}
+          </div>
+          {/* El Modal ya es responsive por naturaleza al usar flex-col y overflow-y-auto */}
+          {renderEditModal()}
+      </div>
+  );
 };
