@@ -155,17 +155,17 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     if (id === 'chicken_tender') return <IconSaladaChickenTender />
     if (id === 'rajas_crema_esp') return <IconSaladaRajas />
 
-    if (id === 'americano') return <IconAmericano />
-    if (id === 'capuccino') return <IconCapuccino />
-    if (id === 'tisanas') return <IconTisanas />
-    if (id === 'te') return <IconTe />
-    if (id === 'chocolate') return <IconChocolate />
-    if (id === 'chocolate_blanco') return <IconChocolateBlanco />
-    if (id === 'vainilla_latte') return <IconVainillaLatte />
-    if (id === 'taro_latte') return <IconTaroLatte />
-    if (id === 'matcha_latte') return <IconMatchaLatte />
-    if (id === 'moka') return <IconMoka />
-    if (id === 'latte') return <IconLatte />
+    if (id === 'item_americano') return <IconAmericano />
+    if (id === 'item_capuchino') return <IconCapuccino />
+    if (id === 'item_tisanas') return <IconTisanas />
+    if (id === 'item_te') return <IconTe />
+    if (id === 'item_chocolate') return <IconChocolate />
+    if (id === 'item_chocolate_blanco') return <IconChocolateBlanco />
+    if (id === 'item_vainilla_latte') return <IconVainillaLatte />
+    if (id === 'item_taro_latte') return <IconTaroLatte />
+    if (id === 'item_matcha_latte') return <IconMatchaLatte />
+    if (id === 'item_moka') return <IconMoka />
+    if (id === 'item_latte') return <IconLatte />
 
     if (id.includes('hotcake') || category.includes('hotcake') || name.includes('hot cake') || name.includes('hotcake')) return <IconHotcakes />;
     if (id.includes('waffle') || category.includes('waffle') || name.includes('waffle')) return <IconWaffle />;
@@ -173,7 +173,7 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     if (id.includes('frapp') || category.includes('frapp') || name.includes('frapp')) return <IconFrappe />;
     if (id.includes('licuado') || category.includes('licuado') || name.includes('licuado')) return <IconLicuado />;
     if (id.includes('malteada') || category.includes('malteada') || name.includes('malteada')) return <IconMalteada />;
-    if (id.includes('sodas_italianas_custom')) return <IconSoda />;
+    if (id.includes('item_soda')) return <IconSoda />;
     
     // 2. CATEGORÍAS Y GRUPOS (IDs parciales)
     if (id.includes('postres_fijos')) return <IconPostre />;
