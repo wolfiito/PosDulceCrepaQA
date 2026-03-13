@@ -136,24 +136,24 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     if (id === 'item_duraznos_crema') return <IconDuraznosCrema />;
     if (id === 'item_fresa_crema' || name.includes('fresas con crema')) return <IconFresaCrema />;
 
-    if (id === 'frutos_rojos') return <IconDulceFrutosRojos />
-    if (id === 'dulce_cajeta') return <IconDulceCajeta />
-    if (id === 'dulce_rompope') return <IconDulceRompope />
-    if (id === 'dulce_tentacion') return <IconDulceTentacion />
-    if (id === 'dulce_fresa') return <IconDulceFresa />
-    if (id === 'dulce_duraznos') return <IconDulceDuraznos />
-    if (id === 'delicia_casa') return <IconDeliciaCasa />
-    if (id === 'dulce_platano') return <IconDulcePlatano />
-    if (id === 'dulce_tropical') return <IconDulceTropical />
+    if (id === 'item_frutos_rojos') return <IconDulceFrutosRojos />
+    if (id === 'item_dulce_cajeta') return <IconDulceCajeta />
+    if (id === 'item_dulce_rompope') return <IconDulceRompope />
+    if (id === 'item_dulce_tentacion') return <IconDulceTentacion />
+    if (id === 'item_dulce_fresa') return <IconDulceFresa />
+    if (id === 'item_dulce_duraznos') return <IconDulceDuraznos />
+    if (id === 'item_delicia_casa') return <IconDeliciaCasa />
+    if (id === 'item_dulce_platano') return <IconDulcePlatano />
+    if (id === 'item_dulce_tropical') return <IconDulceTropical />
 
-    if (id === 'hawaiana') return <IconSaladaHawaiana />
-    if (id === 'italiana') return <IconSaladaItaliana />
-    if (id === 'crepizza') return <IconSaladaCrepizza />
-    if (id === 'tres_quesos') return <IconSaladaTresQuesos />
-    if (id === 'suprema') return <IconSaladaSuprema />
-    if (id === 'clasica') return <IconSaladaClasica />
-    if (id === 'chicken_tender') return <IconSaladaChickenTender />
-    if (id === 'rajas_crema_esp') return <IconSaladaRajas />
+    if (id === 'item_hawaiana') return <IconSaladaHawaiana />
+    if (id === 'item_italiana') return <IconSaladaItaliana />
+    if (id === 'item_crepizza') return <IconSaladaCrepizza />
+    if (id === 'item_tres_quesos') return <IconSaladaTresQuesos />
+    if (id === 'item_suprema') return <IconSaladaSuprema />
+    if (id === 'item_clasica') return <IconSaladaClasica />
+    if (id === 'item_chicken_tender') return <IconSaladaChickenTender />
+    if (id === 'item_rajas_crema_esp') return <IconSaladaRajas />
 
     if (id === 'item_americano') return <IconAmericano />
     if (id === 'item_capuchino') return <IconCapuccino />
