@@ -10,6 +10,20 @@ interface StockUpdate {
     newStock: number;
 }
 
+const cleanUndefined = (obj: any): any => {
+    if (Array.isArray(obj)) {
+        return obj.map(cleanUndefined);
+    }
+    if (obj !== null && typeof obj === 'object') {
+        return Object.fromEntries(
+            Object.entries(obj)
+                .filter(([_, value]) => value !== undefined)
+                .map(([key, value]) => [key, cleanUndefined(value)])
+        );
+    }
+    return obj;
+};
+
 export const orderService = {
   async createOrder(
     branchId: string,
@@ -81,22 +95,26 @@ export const orderService = {
         }
         finalOrderNumber = currentCount + 1;
 
+        const cleanItems = cleanUndefined(items);
+        const cleanPayment = payment ? cleanUndefined(payment) : undefined;
+        
         // F. Preparar Objeto
-        const firebaseOrderData: Order = {
-          branchId,
-          items,
-          total,
-          mode,
-          status: initialStatus,
-          kitchenStatus: initialKitchenStatus,
-          orderNumber: finalOrderNumber,
-          customerName,
-          createdAt: serverTimestamp(),
-          cashier: cashierName,
-          ...(payment && { payment }),
-          ...(shiftId && { shiftId })
+        const firebaseOrderData: any = {
+            branchId: branchId || 'sin-sucursal',
+            items: cleanItems,
+            total: total || 0,
+            mode: mode || 'Para Llevar',
+            status: initialStatus,
+            kitchenStatus: initialKitchenStatus,
+            orderNumber: finalOrderNumber,
+            customerName: customerName || 'Cliente Anónimo',
+            createdAt: serverTimestamp(),
+            cashier: cashierName || 'Cajero',
         };
 
+        if (cleanPayment) firebaseOrderData.payment = cleanPayment;
+        if (shiftId) firebaseOrderData.shiftId = shiftId;
+        
         const newOrderRef = doc(collection(db, "orders")); 
         transaction.set(newOrderRef, firebaseOrderData);
         transaction.set(counterRef, { count: finalOrderNumber }, { merge: true });

@@ -125,16 +125,16 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     const name = item.name.toLowerCase(); 
 
     // 1. POSTRES ESPECÍFICOS
-    if (id === 'gelatina_rompope') return <IconGelatinaRompope />;
-    if (id === 'pay_limon') return <IconPayLimon />;
-    if (id === 'gelatina_mosaico') return <IconGelatinaMosaico />;
-    if (id === 'arroz_leche') return <IconArrozLeche />;
-    if (id === 'flan_napolitano') return <IconFlanNapolitano />;
-    if (id === 'flan_vainilla') return <IconFlanVainilla />;
-    if (id === 'uvas_verdes_crema') return <IconUvasVerdesCrema />;
-    if (id === 'frutos_rojos_crema') return <IconFrutosRojosCrema />;
-    if (id === 'duraznos_crema') return <IconDuraznosCrema />;
-    if (id === 'fresa_crema' || name.includes('fresas con crema')) return <IconFresaCrema />;
+    if (id === 'item_gelatina_rompope') return <IconGelatinaRompope />;
+    if (id === 'item_pay_limon') return <IconPayLimon />;
+    if (id === 'item_gelatina_mosaico') return <IconGelatinaMosaico />;
+    if (id === 'item_arroz_leche') return <IconArrozLeche />;
+    if (id === 'item_flan_napolitano') return <IconFlanNapolitano />;
+    if (id === 'item_flan_vainilla') return <IconFlanVainilla />;
+    if (id === 'item_uvas_verdes_crema') return <IconUvasVerdesCrema />;
+    if (id === 'item_frutos_rojos_crema') return <IconFrutosRojosCrema />;
+    if (id === 'item_duraznos_crema') return <IconDuraznosCrema />;
+    if (id === 'item_fresa_crema' || name.includes('fresas con crema')) return <IconFresaCrema />;
 
     if (id === 'frutos_rojos') return <IconDulceFrutosRojos />
     if (id === 'dulce_cajeta') return <IconDulceCajeta />
