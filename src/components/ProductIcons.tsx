@@ -47,19 +47,19 @@ const IconDeliciaCasa = () => (<img src="/CrepasDulces/item_delicia_casa.svg" wi
 
 // ______ Iniciamos Crepas Saladas _______ //
 
-const IconSaladaCrepizza = () => (<img src="/item_crepizza.svg" width="100" height="64" />);
-const IconSaladaHawaiana = () => (<img src="/item_hawaiana.svg" width="100" height="64" />);
-const IconSaladaTresQuesos = () => (<img src="/item_tres_quesos.svg" width="100" height="64" />);  
-const IconSaladaSuprema = () => (<img src="/item_suprema.svg" width="100" height="64" />);
-const IconSaladaClasica = () => (<img src="/item_clasica.svg" width="100" height="64" />);
-const IconSaladaRajas = () => (<img src="/item_rajas_crema.svg" width="100" height="64" />);
-const IconSaladaChickenTender = () => (<img src="/item_chicken_tender.svg" width="100" height="64" />);
-const IconSaladaItaliana = () => (<img src="/item_italiana.svg" width="100" height="64" />);
-const IconSaladaCrepasSaladas = () => (<img src="/crepas_saladas.svg" />)
-const IconSaladaCarnesFrias = () => (<img src="/item_carnes_frias.svg"/>)
-const IconSaladaChampiQueso = () => (<img src="/item_champiqueso.svg"/>)
-const IconSaladaEspañola = () => (<img src="/item_española.svg"/>)
-const IconSaladaVegetarian = () => (<img src="/item_vegetariana.svg"/>)
+const IconCrepasSaladas = () => (<img src="/CrepasSaladas/crepas_saladas.svg" />)
+const IconSaladaCarnesFrias = () => (<img src="/CrepasSaladas/item_carnes_frias.svg"/>)
+const IconSaladaChampiQueso = () => (<img src="/CrepasSaladas/item_champiqueso.svg"/>)
+const IconSaladaChickenTender = () => (<img src="/CrepasSaladas/item_chicken_tender.svg" width="100" height="64" />);
+const IconSaladaClasica = () => (<img src="/CrepasSaladas/item_clasica.svg" width="100" height="64" />);
+const IconSaladaCrepizza = () => (<img src="/CrepasSaladas/item_crepizza.svg" width="100" height="64" />);
+const IconSaladaEspañola = () => (<img src="/CrepasSaladas/item_española.svg"/>)
+const IconSaladaHawaiana = () => (<img src="/CrepasSaladas/item_hawaiana.svg" width="100" height="64" />);
+const IconSaladaItaliana = () => (<img src="/CrepasSaladas/item_italiana.svg" width="100" height="64" />);
+const IconSaladaRajas = () => (<img src="/CrepasSaladas/item_rajas_crema.svg" width="100" height="64" />);
+const IconSaladaSuprema = () => (<img src="/CrepasSaladas/item_suprema.svg" width="100" height="64" />);
+const IconSaladaTresQuesos = () => (<img src="/CrepasSaladas/item_tres_quesos.svg" width="100" height="64" />);  
+const IconSaladaVegetarian = () => (<img src="/CrepasSaladas/item_vegetariana.svg"/>)
 
 const IconAmericano = () => (<img src="/item_dulce_cajeta.svg" width="100" height="64" />);
 const IconCapuccino = () => (<img src="/item_dulce_cajeta.svg" width="100" height="64" />);  
@@ -116,7 +116,7 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     // __________ Finaliza Iconos Crepas Dulces  __________ //
 
     // __________ Inicia Iconos Crepas Saladas  __________ //
-    if (id === 'crepas_saladas') return <IconCrepaSalada/>
+    if (id === 'crepas_saladas') return <IconCrepasSaladas/>
     if (id === 'item_carnes_frias') return <IconSaladaCarnesFrias />
     if (id === 'item_champiqueso') return <IconSaladaChampiQueso />
     if (id === 'item_chicken_tender') return <IconSaladaChickenTender />
