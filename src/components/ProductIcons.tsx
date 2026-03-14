@@ -30,28 +30,36 @@ const IconGelatinaRompope = () => (<img src="/item_gelatina_rompope.svg" width="
 
 // ______ Iniciamos Crepas Dulces _______ //
 
-const IconDulceTropical = () => (<img src="/item_dulce_tropical.svg" width="100" height="64" />);
-const IconDulceRompope = () => (<img src="/item_dulce_rompope.svg" width="100" height="64" />);
-const IconDulcePlatano = () => (<img src="/item_dulce_platano.svg" width="100" height="64" />);
-const IconDulceDuraznos = () => (<img src="/item_dulce_durazno.svg" width="100" height="64" />);
-const IconDulceFrutosRojos = () => (<img src="/item_crepa_frutos_rojos.svg" width="100" height="64" />);
-const IconStrudelManzana = () => (<img src="/item_crepa_strudel_manzana.svg" width="100" height="64" />);
-const IconDulceCajeta = () => (<img src="/item_dulce_cajeta.svg" width="100" height="64" />);
-const IconDulceTentacion = () => (<img src="/item_dulce_tentacion.svg" width="100" height="64" />);
-const IconDulceFresa = () => (<img src="/item_dulce_fresa.svg" width="100" height="64" />);
-const IconDeliciaCasa = () => (<img src="/item_delicia_casa.svg" width="100" height="64" />);
+const IconCrepasDulces = () => (<img src="/CrepasDulces/item_crepa_dulce.svg" />);
+const IconArmaCrepa = () => (<img src="/CrepasDulces/item_arma_crepa.svg" />);
+const IconDulceTropical = () => (<img src="/CrepasDulces/item_dulce_tropical.svg" />);
+const IconDulceRompope = () => (<img src="/CrepasDulces/item_dulce_rompope.svg" />);
+const IconDulcePlatano = () => (<img src="/CrepasDulces/item_dulce_platano.svg" width="100" height="64" />);
+const IconDulceDuraznos = () => (<img src="/CrepasDulces/item_dulce_durazno.svg" width="100" height="64" />);
+const IconDulceFrutosRojos = () => (<img src="/CrepasDulces/item_crepa_frutos_rojos.svg" width="100" height="64" />);
+const IconStrudelManzana = () => (<img src="/CrepasDulces/item_crepa_strudel_manzana.svg" width="100" height="64" />);
+const IconDulceCajeta = () => (<img src="/CrepasDulces/item_dulce_cajeta.svg" width="100" height="64" />);
+const IconDulceTentacion = () => (<img src="/CrepasDulces/item_dulce_tentacion.svg" width="100" height="64" />);
+const IconDulceFresa = () => (<img src="/CrepasDulces/item_dulce_fresa.svg" width="100" height="64" />);
+const IconDeliciaCasa = () => (<img src="/CrepasDulces/item_delicia_casa.svg" width="100" height="64" />);
+
 // ______ Finalizamos Crepas Dulces _______ //
 
 // ______ Iniciamos Crepas Saladas _______ //
-const IconSaladaCrepizza = () => (<img src="/item_dulce_cajeta.svg" width="100" height="64" />);
-const IconSaladaHawaiana = () => (<img src="/item_dulce_cajeta.svg" width="100" height="64" />);
-const IconSaladaTresQuesos = () => (<img src="/item_dulce_cajeta.svg" width="100" height="64" />);  
-const IconSaladaSuprema = () => (<img src="/item_dulce_cajeta.svg" width="100" height="64" />);
-const IconSaladaClasica = () => (<img src="/item_dulce_cajeta.svg" width="100" height="64" />);
-const IconSaladaRajas = () => (<img src="/item_dulce_cajeta.svg" width="100" height="64" />);
-const IconSaladaChickenTender = () => (<img src="/item_dulce_cajeta.svg" width="100" height="64" />);
-const IconSaladaItaliana = () => (<img src="/item_dulce_cajeta.svg" width="100" height="64" />);
 
+const IconSaladaCrepizza = () => (<img src="/item_crepizza.svg" width="100" height="64" />);
+const IconSaladaHawaiana = () => (<img src="/item_hawaiana.svg" width="100" height="64" />);
+const IconSaladaTresQuesos = () => (<img src="/item_tres_quesos.svg" width="100" height="64" />);  
+const IconSaladaSuprema = () => (<img src="/item_suprema.svg" width="100" height="64" />);
+const IconSaladaClasica = () => (<img src="/item_clasica.svg" width="100" height="64" />);
+const IconSaladaRajas = () => (<img src="/item_rajas_crema.svg" width="100" height="64" />);
+const IconSaladaChickenTender = () => (<img src="/item_chicken_tender.svg" width="100" height="64" />);
+const IconSaladaItaliana = () => (<img src="/item_italiana.svg" width="100" height="64" />);
+const IconSaladaCrepasSaladas = () => (<img src="/crepas_saladas.svg" />)
+const IconSaladaCarnesFrias = () => (<img src="/item_carnes_frias.svg"/>)
+const IconSaladaChampiQueso = () => (<img src="/item_champiqueso.svg"/>)
+const IconSaladaEspañola = () => (<img src="/item_española.svg"/>)
+const IconSaladaVegetarian = () => (<img src="/item_vegetariana.svg"/>)
 
 const IconAmericano = () => (<img src="/item_dulce_cajeta.svg" width="100" height="64" />);
 const IconCapuccino = () => (<img src="/item_dulce_cajeta.svg" width="100" height="64" />);  
@@ -93,6 +101,8 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     if (id === 'item_duraznos_crema') return <IconDuraznosCrema />;
     if (id === 'item_fresa_crema' || name.includes('fresas con crema')) return <IconFresaCrema />;
 
+    // __________ Inicia Iconos Crepas Dulces  __________ //
+    if (id === 'crepas_dulces') return <IconCrepaDulce />
     if (id === 'item_frutos_rojos') return <IconDulceFrutosRojos />
     if (id === 'item_dulce_cajeta') return <IconDulceCajeta />
     if (id === 'item_dulce_rompope') return <IconDulceRompope />
@@ -103,15 +113,24 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     if (id === 'item_dulce_platano') return <IconDulcePlatano />
     if (id === 'item_dulce_tropical') return <IconDulceTropical />
     if (id === 'item_strudel_manzana') return <IconStrudelManzana/>
+    // __________ Finaliza Iconos Crepas Dulces  __________ //
+
+    // __________ Inicia Iconos Crepas Saladas  __________ //
+    if (id === 'crepas_saladas') return <IconCrepaSalada/>
+    if (id === 'item_carnes_frias') return <IconSaladaCarnesFrias />
+    if (id === 'item_champiqueso') return <IconSaladaChampiQueso />
+    if (id === 'item_chicken_tender') return <IconSaladaChickenTender />
+    if (id === 'item_clasica') return <IconSaladaClasica />
+    if (id === 'item_crepizza') return <IconSaladaCrepizza />
+    if (id === 'item_española') return <IconSaladaEspañola />
     if (id === 'item_hawaiana') return <IconSaladaHawaiana />
     if (id === 'item_italiana') return <IconSaladaItaliana />
-    if (id === 'item_crepizza') return <IconSaladaCrepizza />
-    if (id === 'item_tres_quesos') return <IconSaladaTresQuesos />
-    if (id === 'item_suprema') return <IconSaladaSuprema />
-    if (id === 'item_clasica') return <IconSaladaClasica />
-    if (id === 'item_chicken_tender') return <IconSaladaChickenTender />
     if (id === 'item_rajas_crema_esp') return <IconSaladaRajas />
-
+    if (id === 'item_suprema') return <IconSaladaSuprema />
+    if (id === 'item_tres_quesos') return <IconSaladaTresQuesos />
+    if (id === 'item_vegetariana') return <IconSaladaVegetarian />
+    // __________ Finaliza Iconos Crepas Dulces  __________ //
+    
     if (id === 'item_americano') return <IconAmericano />
     if (id === 'item_capuchino') return <IconCapuccino />
     if (id === 'item_tisanas') return <IconTisanas />
