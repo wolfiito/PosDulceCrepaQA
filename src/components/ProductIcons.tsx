@@ -6,8 +6,7 @@ import type { MenuItem, MenuGroup } from '../types/menu';
 
 const IconBebidaFria = () => (<img src="/item_bebida_fria.svg" width="100" height="64" />);
 const IconPostre = () => (<img src="/item_postre.svg" width="100" height="64" />);
-const IconCrepaSalada = () => (<img src="/item_crepa_salada.svg" width="100" height="64" />);
-const IconCrepaDulce = () => (<img src="/item_crepa_dulce.svg" width="100" height="64" />);
+const IconCrepaSalada = () => (<img src="/CrepasSaladas/item_crepa_salada.svg" width="100" height="64" />);
 
 const IconCafeCaliente = () => (<img src="/item_cafe_caliente.svg" width="100" height="64" />);
 const IconHotcakes = () => (<img src="/item_hotcakes.svg" width="100" height="64" />);
@@ -30,7 +29,7 @@ const IconGelatinaRompope = () => (<img src="/item_gelatina_rompope.svg" width="
 
 // ______ Iniciamos Crepas Dulces _______ //
 
-const IconCrepasDulces = () => (<img src="/CrepasDulces/item_crepa_dulce.svg" />);
+const IconCrepaDulce = () => (<img src="/CrepasDulces/item_crepa_dulce.svg" />);
 const IconArmaCrepa = () => (<img src="/CrepasDulces/item_arma_crepa.svg" />);
 const IconDulceTropical = () => (<img src="/CrepasDulces/item_dulce_tropical.svg" />);
 const IconDulceRompope = () => (<img src="/CrepasDulces/item_dulce_rompope.svg" />);
@@ -42,7 +41,7 @@ const IconDulceCajeta = () => (<img src="/CrepasDulces/item_dulce_cajeta.svg" wi
 const IconDulceTentacion = () => (<img src="/CrepasDulces/item_dulce_tentacion.svg" width="100" height="64" />);
 const IconDulceFresa = () => (<img src="/CrepasDulces/item_dulce_fresa.svg" width="100" height="64" />);
 const IconDeliciaCasa = () => (<img src="/CrepasDulces/item_delicia_casa.svg" width="100" height="64" />);
-
+const IconBananaCaramel = () => (<img src="/CrepasDulces/item_banana_caramel.svg" />);
 // ______ Finalizamos Crepas Dulces _______ //
 
 // ______ Iniciamos Crepas Saladas _______ //
@@ -113,6 +112,7 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     if (id === 'item_dulce_platano') return <IconDulcePlatano />
     if (id === 'item_dulce_tropical') return <IconDulceTropical />
     if (id === 'item_strudel_manzana') return <IconStrudelManzana/>
+    if (id === 'item_banana_caramel') return <IconBananaCaramel />
     // __________ Finaliza Iconos Crepas Dulces  __________ //
 
     // __________ Inicia Iconos Crepas Saladas  __________ //
