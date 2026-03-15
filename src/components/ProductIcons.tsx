@@ -9,23 +9,31 @@ const IconPostre = () => (<img src="/item_postre.svg" width="100" height="64" />
 const IconCrepaSalada = () => (<img src="/CrepasSaladas/item_crepa_salada.svg" width="100" height="64" />);
 
 const IconCafeCaliente = () => (<img src="/item_cafe_caliente.svg" width="100" height="64" />);
-const IconHotcakes = () => (<img src="/item_hotcakes.svg" width="100" height="64" />);
-const IconWaffle = () => (<img src="/item_waffle.svg" width="100" height="64" />);
+
+
 const IconBebidas = () => (<img src="/item_bebida.svg" width="100" height="64" />);
 const IconChamoyada = () => (<img src="/item_chamoyada.svg" width="100" height="64" />);
 const IconFrappe = () => (<img src="/item_frappe.svg" width="100" height="64" />);
 const IconLicuado = () => (<img src="/item_licuado.svg" width="100" height="64" />);
 const IconMalteada = () => (<img src="/item_malteada.svg" width="100" height="64" />);
 const IconSoda = () => (<img src="/item_soda.svg" width="100" height="64" />);
-const IconFresaCrema = () => (<img src="/item_fresa_crema.svg" width="100" height="64" />);
-const IconDuraznosCrema = () => (<img src="/item_durazno_crema.svg" width="100" height="64" />);
-const IconFrutosRojosCrema = () => (<img src="/item_frutos_rojos_crema.svg" width="100" height="64" />);
-const IconUvasVerdesCrema = () => (<img src="/item_uvas_verdes_crema.svg" width="100" height="64" />);
-const IconFlanVainilla = () => (<img src="/item_flan_vainilla.svg" width="100" height="64" />);
-const IconFlanNapolitano = () => (<img src="/item_flan_napolitano.svg" width="100" height="64" />);
-const IconArrozLeche = () => (<img src="/item_arroz_leche.svg" width="100" height="64" />);
-const IconPayLimon = () => (<img src="/item_pay_limon.svg" width="100" height="64" />);
-const IconGelatinaRompope = () => (<img src="/item_gelatina_rompope.svg" width="100" height="64" />);
+
+// __________ Inicia Panquecitos  __________ //
+const IconHotcakes = () => (<img src="/Postres/hotcakes.svg" width="100" height="64" />);
+const IconWaffle = () => (<img src="/Postres/waffle.svg" width="100" height="64" />);
+const IconMiniHotcake = () => (<img src="/Postres/mini_hotcakes.svg" />);
+// __________ Finaliza panquecitos  __________ //
+
+// __________ Inicia Postres  __________ //
+const IconFresaCrema = () => (<img src="/Postres/item_fresas_crema.svg" width="100" height="64" />);
+const IconDuraznosCrema = () => (<img src="/Postres/item_duraznos_crema.svg" width="100" height="64" />);
+const IconFrutosRojosCrema = () => (<img src="/Postres/item_frutos_rojos_crema.svg" width="100" height="64" />);
+const IconUvasVerdesCrema = () => (<img src="/Postres/item_uvas_verdes_crema.svg" width="100" height="64" />);
+const IconFlanVainilla = () => (<img src="/Postres/item_flan_vainilla.svg" width="100" height="64" />);
+const IconFlanNapolitano = () => (<img src="/Postres/item_flan_napolitano.svg" width="100" height="64" />);
+const IconArrozLeche = () => (<img src="/Postres/item_arroz_leche.svg" width="100" height="64" />);
+const IconPayLimon = () => (<img src="/Postres/item_pay_limon.svg" width="100" height="64" />);
+// __________ Finaliza Postres  __________ //
 
 // ______ Iniciamos Crepas Dulces _______ //
 
@@ -90,8 +98,6 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     const category = 'category' in item ? item.category.toLowerCase() : '';
     const name = item.name.toLowerCase(); 
 
-    // 1. POSTRES ESPECÍFICOS
-    if (id === 'item_gelatina_rompope') return <IconGelatinaRompope />;
     if (id === 'item_pay_limon') return <IconPayLimon />;
     if (id === 'item_arroz_leche') return <IconArrozLeche />;
     if (id === 'item_flan_napolitano') return <IconFlanNapolitano />;
@@ -100,6 +106,8 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     if (id === 'item_frutos_rojos_crema') return <IconFrutosRojosCrema />;
     if (id === 'item_duraznos_crema') return <IconDuraznosCrema />;
     if (id === 'item_fresa_crema' || name.includes('fresas con crema')) return <IconFresaCrema />;
+
+
 
     // __________ Inicia Iconos Crepas Dulces  __________ //
     if (id === 'crepas_dulces') return <IconCrepaDulce />
