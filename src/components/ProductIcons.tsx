@@ -20,7 +20,7 @@ const IconSoda = () => (<img src="/item_soda.svg" width="100" height="64" />);
 
 // __________ Inicia Panquecitos  __________ //
 const IconHotcakes = () => (<img src="/Postres/hotcakes.svg" width="100" height="64" />);
-const IconWaffle = () => (<img src="/Postres/waffle.svg" width="100" height="64" />);
+const IconWaffle = () => (<img src="/Postres/waffles.svg" width="100" height="64" />);
 const IconMiniHotcake = () => (<img src="/Postres/mini_hotcakes.svg" />);
 // __________ Finaliza panquecitos  __________ //
 
@@ -68,6 +68,8 @@ const IconSaladaRajas = () => (<img src="/CrepasSaladas/item_rajas_crema.svg" wi
 const IconSaladaSuprema = () => (<img src="/CrepasSaladas/item_suprema.svg" width="100" height="64" />);
 const IconSaladaTresQuesos = () => (<img src="/CrepasSaladas/item_tres_quesos.svg" width="100" height="64" />);  
 const IconSaladaVegetarian = () => (<img src="/CrepasSaladas/item_vegetariana.svg"/>)
+
+// ______ Finalizamos Crepas Saladas _______ //
 
 const IconAmericano = () => (<img src="/item_dulce_cajeta.svg" width="100" height="64" />);
 const IconCapuccino = () => (<img src="/item_dulce_cajeta.svg" width="100" height="64" />);  
@@ -153,8 +155,10 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     if (id === 'item_moka') return <IconMoka />
     if (id === 'item_latte') return <IconLatte />
 
-    if (id.includes('hotcake') || category.includes('hotcake') || name.includes('hot cake') || name.includes('hotcake')) return <IconHotcakes />;
-    if (id.includes('waffle') || category.includes('waffle') || name.includes('waffle')) return <IconWaffle />;
+    if (id === 'hotcake') return <IconHotcakes />;
+    if (id === 'waffle') return <IconWaffle />;
+    if (id === 'mini_hotcake') return <IconMiniHotcake />
+
     if (id.includes('chamoyada') || category.includes('chamoyada') || name.includes('chamoyada')) return <IconChamoyada />;
     if (id.includes('frapp') || category.includes('frapp') || name.includes('frapp')) return <IconFrappe />;
     if (id.includes('licuado') || category.includes('licuado') || name.includes('licuado')) return <IconLicuado />;
