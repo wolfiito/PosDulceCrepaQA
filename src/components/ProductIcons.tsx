@@ -42,6 +42,7 @@ const IconDulceTentacion = () => (<img src="/CrepasDulces/item_dulce_tentacion.s
 const IconDulceFresa = () => (<img src="/CrepasDulces/item_dulce_fresa.svg" width="100" height="64" />);
 const IconDeliciaCasa = () => (<img src="/CrepasDulces/item_delicia_casa.svg" width="100" height="64" />);
 const IconBananaCaramel = () => (<img src="/CrepasDulces/item_banana_caramel.svg" />);
+const IconNutella = () => (<img src="/CrepasDulces/item_dulce_nutella.svg"/>)
 // ______ Finalizamos Crepas Dulces _______ //
 
 // ______ Iniciamos Crepas Saladas _______ //
@@ -49,7 +50,7 @@ const IconBananaCaramel = () => (<img src="/CrepasDulces/item_banana_caramel.svg
 const IconCrepasSaladas = () => (<img src="/CrepasSaladas/crepas_saladas.svg" />)
 const IconSaladaCarnesFrias = () => (<img src="/CrepasSaladas/item_carnes_frias.svg"/>)
 const IconSaladaChampiQueso = () => (<img src="/CrepasSaladas/item_champiqueso.svg"/>)
-const IconSaladaChickenTender = () => (<img src="/CrepasSaladas/item_chicken_tender.svg" width="100" height="64" />);
+const IconSaladaChickenTender = () => (<img src="/CrepasSaladas/item_chiken_tender.svg" width="100" height="64" />);
 const IconSaladaClasica = () => (<img src="/CrepasSaladas/item_clasica.svg" width="100" height="64" />);
 const IconSaladaCrepizza = () => (<img src="/CrepasSaladas/item_crepizza.svg" width="100" height="64" />);
 const IconSaladaEspañola = () => (<img src="/CrepasSaladas/item_española.svg"/>)
@@ -113,13 +114,14 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     if (id === 'item_dulce_tropical') return <IconDulceTropical />
     if (id === 'item_strudel_manzana') return <IconStrudelManzana/>
     if (id === 'item_banana_caramel') return <IconBananaCaramel />
+    if (id === 'item_dulce_nutella') return <IconNutella />
     // __________ Finaliza Iconos Crepas Dulces  __________ //
 
     // __________ Inicia Iconos Crepas Saladas  __________ //
     if (id === 'crepas_saladas') return <IconCrepasSaladas/>
     if (id === 'item_carnes_frias') return <IconSaladaCarnesFrias />
     if (id === 'item_champiqueso') return <IconSaladaChampiQueso />
-    if (id === 'item_chicken_tender') return <IconSaladaChickenTender />
+    if (id === 'item_chiken_tender') return <IconSaladaChickenTender />
     if (id === 'item_clasica') return <IconSaladaClasica />
     if (id === 'item_crepizza') return <IconSaladaCrepizza />
     if (id === 'item_española') return <IconSaladaEspañola />
