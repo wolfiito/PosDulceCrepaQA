@@ -141,10 +141,13 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     if (id === 'item_dulce_rompope') return <IconDulceRompope />
     if (id === 'item_dulce_tentacion') return <IconDulceTentacion />
     if (id === 'item_dulce_fresa') return <IconDulceFresa />
-    if (id === 'item_dulce_duraznos') return <IconDulceDuraznos />
+    if (id === 'item_dulce_durazno') return <IconDulceDuraznos />
     if (id === 'item_delicia_casa') return <IconDeliciaCasa />
     if (id === 'item_dulce_platano') return <IconDulcePlatano />
     if (id === 'item_dulce_tropical') return <IconDulceTropical />
+    if (id === 'item_dulce_nutella') return <IconDulceCajeta />
+    if (id === 'item_banana_caramel') return <IconDulcePlatano />
+    if (id === 'item_strudel_manzana') return <IconDulceTropical/>
 
     if (id === 'item_hawaiana') return <IconSaladaHawaiana />
     if (id === 'item_italiana') return <IconSaladaItaliana />
@@ -152,11 +155,15 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     if (id === 'item_tres_quesos') return <IconSaladaTresQuesos />
     if (id === 'item_suprema') return <IconSaladaSuprema />
     if (id === 'item_clasica') return <IconSaladaClasica />
-    if (id === 'item_chicken_tender') return <IconSaladaChickenTender />
-    if (id === 'item_rajas_crema_esp') return <IconSaladaRajas />
+    if (id === 'item_chiken_tender') return <IconSaladaChickenTender />
+    if (id === 'item_rajas_crema') return <IconSaladaRajas />
+    if (id === 'item_vegetariana') return <IconCrepaSalada/>
+    if (id === 'item_española') return <IconCrepaSalada/>
+    if (id === 'item_champiqueso') return <IconCrepaSalada />
+    if (id === 'item_carnes_frias') return <IconCrepaSalada />
 
     if (id === 'item_americano') return <IconAmericano />
-    if (id === 'item_capuccino') return <IconCapuccino />
+    if (id === 'item_capuchino') return <IconCapuccino />
     if (id === 'item_tisanas') return <IconTisanas />
     if (id === 'item_te') return <IconTe />
     if (id === 'item_chocolate') return <IconChocolate />
@@ -173,8 +180,8 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     if (id.includes('item_frapp') || category.includes('frapp') || name.includes('frapp')) return <IconFrappe />;
     if (id.includes('item_licuado') || category.includes('licuado') || name.includes('licuado')) return <IconLicuado />;
     if (id.includes('item_malteada') || category.includes('malteada') || name.includes('malteada')) return <IconMalteada />;
-    if (id.includes('item_sodas_italianas_custom')) return <IconSoda />;
-    
+    if (id.includes('item_soda')) return <IconSoda />;
+    if (id.includes('item_bubble_tea') || category.includes('bubble tea') || name.includes('bubble tea') || name.includes('bublee')) return <IconBebidaFria />;
     // 2. CATEGORÍAS Y GRUPOS (IDs parciales)
     if (id.includes('postres_fijos')) return <IconPostre />;
     
