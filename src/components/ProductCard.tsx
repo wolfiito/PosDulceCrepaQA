@@ -11,9 +11,10 @@ interface ProductCardProps {
   item: MenuItem | MenuGroup;
   onClick: () => void;
   isLarge?: boolean; 
+  isOutOfStock?: boolean;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ item, onClick, isLarge = false }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ item, onClick, isLarge = false, isOutOfStock = false }) => {
     const { activeBranchId } = useAuthStore();
     const isGrp = isGroup(item);
 
@@ -42,6 +43,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ item, onClick, isLarge
     };
 
     const handleClick = () => {
+        if (isOutOfStock) return;
         if (navigator.vibrate) navigator.vibrate(10); 
         onClick();
     };
@@ -53,12 +55,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ item, onClick, isLarge
                 relative group
                 card h-full aspect-square
                 shadow-sm hover:shadow-md
-                cursor-pointer transition-all duration-200
-                active:scale-95 border border-transparent
+                transition-all duration-200
+                border border-transparent
                 overflow-hidden select-none
+                ${isOutOfStock ? 'opacity-60 grayscale cursor-not-allowed' : 'cursor-pointer active:scale-95'}
                 ${isGrp ? 'bg-primary/5 hover:bg-primary/10 hover:border-primary/30' : 'bg-base-100 hover:border-base-300'}
             `}
         >
+            {isOutOfStock && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-error text-white font-black px-4 py-1 rounded-sm shadow-xl rotate-12 z-20 text-[clamp(1rem,4vw,1.25rem)] uppercase tracking-widest border border-white/20 whitespace-nowrap overflow-visible">
+                    AGOTADO
+                </div>
+            )}
             <div className="card-body p-2 md:p-3 items-center justify-center text-center">
                 {isGrp && (
                     <div className="absolute top-2 right-2 opacity-50">

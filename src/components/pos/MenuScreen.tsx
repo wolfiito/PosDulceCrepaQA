@@ -5,6 +5,7 @@ import { useMenuStore } from '../../store/useMenuStore';
 import { useUIStore } from '../../store/useUIStore';
 import { useTicketStore } from '../../store/useTicketStore';
 import { useAuthStore } from '../../store/useAuthStore'; 
+import { useInventoryStore } from '../../store/useInventoryStore';
 import { ProductCard } from '../ProductCard';
 import { IconBack } from '../Icons';
 import type { MenuItem, MenuGroup } from '../../types/menu';
@@ -15,8 +16,17 @@ export const MenuScreen: React.FC = () => {
     const { addItem } = useTicketStore();
     
     const { activeBranchId } = useAuthStore(); 
+    const { stockData } = useInventoryStore();
     
     const isRoot = !currentGroup;
+
+    const isItemOutOfStock = (item: MenuItem | MenuGroup) => {
+        if ('level' in item) return false; 
+        const inv = stockData[item.id];
+        const isTracked = (item as any).trackStock === true || inv?.trackStock === true;
+        const realStock = inv?.currentStock ?? 0;
+        return isTracked && realStock <= 0;
+    };
 
     const groupsToShow = useMemo(() => {
         if (isRoot) return groups.filter(g => g.parent === 'root');
@@ -92,7 +102,12 @@ export const MenuScreen: React.FC = () => {
                     <ProductCard key={group.id} item={group} onClick={() => handleProductClick(group)} isLarge={isRoot} />
                 ))}
                 {itemsToShow.map(item => (
-                    <ProductCard key={item.id} item={item} onClick={() => handleProductClick(item)} />
+                    <ProductCard 
+                        key={item.id} 
+                        item={item} 
+                        onClick={() => handleProductClick(item)} 
+                        isOutOfStock={isItemOutOfStock(item)}
+                    />
                 ))}
             </div>
         </div>
