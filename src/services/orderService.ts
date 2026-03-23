@@ -49,10 +49,19 @@ export const orderService = {
         const modIdsToRead = new Set<string>();
 
         items.forEach(item => {
+            // 1. Deducir el producto base si existe en inventario
+            const baseId = item.details?.itemId || item.productId;
+            if (baseId) {
+                const currentQty = modifiersToDeduct.get(baseId) || 0;
+                modifiersToDeduct.set(baseId, currentQty + (item.quantity || 1));
+                modIdsToRead.add(baseId);
+            }
+
+            // 2. Deducir los modificadores
             if (item.details?.selectedModifiers) {
                 item.details.selectedModifiers.forEach(mod => {
                     const currentQty = modifiersToDeduct.get(mod.id) || 0;
-                    modifiersToDeduct.set(mod.id, currentQty + 1);
+                    modifiersToDeduct.set(mod.id, currentQty + (item.quantity || 1));
                     modIdsToRead.add(mod.id);
                 });
             }
