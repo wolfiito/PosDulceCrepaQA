@@ -8,10 +8,11 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useInventoryStore } from '../../store/useInventoryStore';
 import { ProductCard } from '../ProductCard';
 import { IconBack } from '../Icons';
+import { EXCLUSIVE_GROUPS } from '../../constants/menuConstants';
 import type { MenuItem, MenuGroup } from '../../types/menu';
 
 export const MenuScreen: React.FC = () => {
-    const { groups, items } = useMenuStore();
+    const { groups, items, modifiers } = useMenuStore();
     const { currentGroup, navigateToGroup, openCustomModal, openVariantModal } = useUIStore();
     const { addItem } = useTicketStore();
     
@@ -25,7 +26,32 @@ export const MenuScreen: React.FC = () => {
         const inv = stockData[item.id];
         const isTracked = (item as any).trackStock === true || inv?.trackStock === true;
         const realStock = inv?.currentStock ?? 0;
-        return isTracked && realStock <= 0;
+        
+        // 1. Verificar el stock base directo del producto
+        if (isTracked && realStock <= 0) return true;
+
+        // 2. Revisar si grupos requeridos de modificadores están vacíos
+        const menuItem = item as MenuItem;
+        if (menuItem.modifierGroups && menuItem.modifierGroups.length > 0) {
+            for (const groupId of menuItem.modifierGroups) {
+                const isExclusive = EXCLUSIVE_GROUPS.includes(groupId) || groupId === 'tipo_leche' || groupId === 'bubble_estilo';
+                if (isExclusive) {
+                    const modsForGroup = modifiers.filter(m => m.group === groupId);
+                    const hasAnyInStock = modsForGroup.some(mod => {
+                        if (activeBranchId && mod.disabledIn?.includes(activeBranchId)) return false;
+                        const minv = stockData[mod.id];
+                        const mTracked = mod.trackStock === true || minv?.trackStock === true;
+                        const mStock = minv?.currentStock ?? 0;
+                        if (mTracked && mStock <= 0) return false; 
+                        return true; 
+                    });
+                    
+                    if (!hasAnyInStock) return true; // El sabor base de la familia agotado = producto base agotado
+                }
+            }
+        }
+        
+        return false;
     };
 
     const groupsToShow = useMemo(() => {

@@ -82,7 +82,7 @@ export const orderService = {
         invSnaps.forEach((snap, index) => {
             if (snap.exists()) {
                 const data = snap.data();
-                if (data.trackStock) {
+                if (data.trackStock !== false) { // Corrección: Asumir que se rastrea a menos que explícitamente diga false
                     const modId = uniqueModIds[index];
                     const qtyToDeduct = modifiersToDeduct.get(modId) || 0;
                     const currentStock = data.currentStock || 0;
