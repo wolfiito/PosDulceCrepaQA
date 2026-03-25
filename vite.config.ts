@@ -16,12 +16,13 @@ export default defineConfig({
       },
       manifest: {
         name: 'Dulce Crepa POS',
-        short_name: 'DulceCrepa',
-        description: 'Un sistema de punto de venta para la crepería Dulce Crepa.',
-        start_url: '.',
+        short_name: 'Dulce Crepa',
+        description: 'Sistema de Punto de Venta para Dulce Crepa',
+        start_url: '/',
         display: 'standalone',
         background_color: '#D9538A',
         theme_color: '#D9538A',
+        orientation: 'portrait-primary',
         icons: [
           {
             src: 'pwa-192x192.png',
