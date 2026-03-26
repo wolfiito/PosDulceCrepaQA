@@ -115,8 +115,20 @@ export const shiftService = {
       }
   });
 
+    // Consultar Gastos (Movements) relacionados a este turno
+    const qExpenses = query(collection(db, 'movements'), where('shiftId', '==', shift.id));
+    const snapExpenses = await getDocs(qExpenses);
+    
+    let totalExpenses = 0;
+    const expenses: any[] = [];
+
+    snapExpenses.docs.forEach(doc => {
+        const d = doc.data();
+        expenses.push({ id: doc.id, ...d });
+        totalExpenses += Number(d.amount) || 0;
+    });
+
     const totalSales = cashTotal + cardTotal + transferTotal;
-    const totalExpenses = 0; 
     const expectedCash = shift.initialFund + cashTotal - totalExpenses;
     const netTotal = totalSales - totalExpenses;
 
@@ -131,7 +143,7 @@ export const shiftService = {
       netTotal,
       totalOrders: orders.length,
       orders: orders,
-      expenses: [],
+      expenses: expenses,
       netBalance: netTotal,
       productCount: productCount,
       productBreakdown: [], 
