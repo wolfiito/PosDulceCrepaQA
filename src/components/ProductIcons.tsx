@@ -3,32 +3,84 @@ import React from 'react';
 import type { MenuItem, MenuGroup } from '../types/menu';
 
 export const ICON_WEBPS: Record<string, string> = {
-    'crepe_sweet': new URL('../assets/icons/crepe-sweet.webp', import.meta.url).href,
-    'crepe_savory': new URL('../assets/icons/crepe-savory.webp', import.meta.url).href,
-    'coffee_hot': new URL('../assets/icons/BebidaCaliente.webp', import.meta.url).href,
-    'bubble_tea': new URL('../assets/icons/bubble-tea.webp', import.meta.url).href,
-    'waffle': new URL('../assets/icons/waffle.webp', import.meta.url).href,
-    'hotcakes': new URL('../assets/icons/hotcakes.webp', import.meta.url).href,
-    'frappe': new URL('../assets/icons/frappe.webp', import.meta.url).href,
-    'smoothie': new URL('../assets/icons/smoothie.webp', import.meta.url).href,
-    'milkshake': new URL('../assets/icons/milkshake.webp', import.meta.url).href,
-    'soda': new URL('../assets/icons/soda.webp', import.meta.url).href,
-    'dessert': new URL('../assets/icons/Postre.webp', import.meta.url).href,
-    'chamoyada': new URL('../assets/icons/Chamoyada.webp', import.meta.url).href,
-    'fresa_crema': new URL('../assets/icons/FresaConCrema.webp', import.meta.url).href,
+    //------Configuración de iconos de categoría-----------//
+    'item_crepas_dulces': new URL('../assets/icons/Categorias/Crepa_Dulce.webp', import.meta.url).href,
+    'item_crepas_saladas': new URL('../assets/icons/Categorias/Crepa_Salada.webp', import.meta.url).href,
+    'item_bebidas_calientes': new URL('../assets/icons/Categorias/Bebidas_Calientes.webp', import.meta.url).href,
+    'item_bebidas_frias': new URL('../assets/icons/Categorias/Bebidas_Frias.webp', import.meta.url).href,
+    'item_postres': new URL('../assets/icons/Categorias/Postres.webp', import.meta.url).href,
+    'item_waffles': new URL('../assets/icons/Categorias/Waffle.webp', import.meta.url).href,
+    'item_hotcakes': new URL('../assets/icons/Categorias/Hotcake.webp', import.meta.url).href,
+    'item_mini_hotcakes': new URL('../assets/icons/Categorias/Mini_Hotcake.webp', import.meta.url).href,
+    //-----------------------------------------------//
 
+    //------Configuración de iconos de crepas dulces------//
+    'item_banana_caramel': new URL('../assets/icons/CrepasDulces/Crepa_Banana_Caramel.webp', import.meta.url).href,
+    'item_delicia_casa': new URL('../assets/icons/CrepasDulces/Crepa_Delicia_Casa.webp', import.meta.url).href,
+    'item_dulce_fresa': new URL('../assets/icons/CrepasDulces/Crepa_Dulce_Fresa.webp', import.meta.url).href,
+    'item_dulce_tropical': new URL('../assets/icons/CrepasDulces/Crepa_Dulce_Tropical.webp', import.meta.url).href,
+    'item_frutos_rojos': new URL('../assets/icons/CrepasDulces/Crepa_Frutos_Rojos.webp', import.meta.url).href,
+    'item_strudel_manzana': new URL('../assets/icons/CrepasDulces/Crepa_Strudel_Manzana.webp', import.meta.url).href,
+    
+    // 'item_dulce_rompope': new URL('../assets/icons/Crepa_Rompope.webp', import.meta.url).href,
+    // 'item_dulce_tentacion': new URL('../assets/icons/Crepa_Tentacion.webp', import.meta.url).href,
+    // 'item_dulce_durazno': new URL('../assets/icons/Crepa_Durazno.webp', import.meta.url).href,
+    // 'item_dulce_platano': new URL('../assets/icons/Crepa_Dulce_Platano.webp', import.meta.url).href,
+    // 'item_dulce_nutella': new URL('../assets/icons/Crepa_Dulce_Nutella.webp', import.meta.url).href,
+    
+    //-----------------------------------------------//
+    
+    //------Configuración de iconos de crepas saladas------//
+    'item_carnes_frias': new URL('../assets/icons/CrepasSaladas/Crepa_Carnes_Fria.webp', import.meta.url).href,
+    'item_champiqueso': new URL('../assets/icons/CrepasSaladas/Crepa_Champiqueso.webp', import.meta.url).href,
+    'item_chiken_tender': new URL('../assets/icons/CrepasSaladas/Crepa_Chiken_Tender.webp', import.meta.url).href,
+    'item_clasica': new URL('../assets/icons/CrepasSaladas/Crepa_Clasica.webp', import.meta.url).href,
+    'item_crepizza': new URL('../assets/icons/CrepasSaladas/Crepa_Crepizza.webp', import.meta.url).href,
+    'item_española': new URL('../assets/icons/CrepasSaladas/Crepa_Española.webp', import.meta.url).href,
+    'item_hawaiana': new URL('../assets/icons/CrepasSaladas/Crepa_Hawaiana.webp', import.meta.url).href,
+    'item_italiana': new URL('../assets/icons/CrepasSaladas/Crepa_Italiana.webp', import.meta.url).href,
+    'item_rajas_crema': new URL('../assets/icons/CrepasSaladas/Crepa_Rajas_Crema.webp', import.meta.url).href,
+    'item_suprema': new URL('../assets/icons/CrepasSaladas/Crepa_Suprema.webp', import.meta.url).href,
+    'item_tres_quesos': new URL('../assets/icons/CrepasSaladas/Crepa_Tres_Quesos.webp', import.meta.url).href,
+    'item_vegetariana': new URL('../assets/icons/CrepasSaladas/Crepa_Vegetariana.webp', import.meta.url).href,
+    //-----------------------------------------------//
+    
     //------Configuración de iconos de bebidas calientes------//
-    'item_americano': new URL('../assets/icons/Cafe_Americano.webp', import.meta.url).href,
-    'item_capuchino': new URL('../assets/icons/Cafe_Capuchino.webp', import.meta.url).href,
-    'item_tisanas': new URL('../assets/icons/Tisana.webp', import.meta.url).href,
-    'item_te': new URL('../assets/icons/Te.webp', import.meta.url).href,
-    'item_chocolate': new URL('../assets/icons/Cafe_Chocolate.webp', import.meta.url).href,
-    'item_chocolate_blanco': new URL('../assets/icons/Cafe_Chocolate_Blanco.webp', import.meta.url).href,
-    'item_vainilla_latte': new URL('../assets/icons/Vainilla_Latte.webp', import.meta.url).href,
-    'item_taro_latte': new URL('../assets/icons/Taro_Latte.webp', import.meta.url).href,
-    'item_matcha_latte': new URL('../assets/icons/Matcha_Latte.webp', import.meta.url).href,
-    'item_moka': new URL('../assets/icons/Cafe_Moka.webp', import.meta.url).href,
-    'item_latte': new URL('../assets/icons/Latte.webp', import.meta.url).href,
+    'item_americano': new URL('../assets/icons/BebidasCalientes/Cafe_Americano.webp', import.meta.url).href,
+    'item_capuchino': new URL('../assets/icons/BebidasCalientes/Cafe_Capuchino.webp', import.meta.url).href,
+    'item_chocolate_blanco': new URL('../assets/icons/BebidasCalientes/Chocolate_Blanco.webp', import.meta.url).href,
+    'item_chocolate': new URL('../assets/icons/BebidasCalientes/Chocolate.webp', import.meta.url).href,
+    'item_latte': new URL('../assets/icons/BebidasCalientes/Latte.webp', import.meta.url).href,
+    'item_matcha_latte': new URL('../assets/icons/BebidasCalientes/Matcha_Latte.webp', import.meta.url).href,
+    'item_taro_latte': new URL('../assets/icons/BebidasCalientes/Taro_Latte.webp', import.meta.url).href,
+    'item_te': new URL('../assets/icons/BebidasCalientes/Te.webp', import.meta.url).href,
+    'item_tisanas': new URL('../assets/icons/BebidasCalientes/Tisana.webp', import.meta.url).href,
+    'item_vainilla_latte': new URL('../assets/icons/BebidasCalientes/Vainilla_Latte.webp', import.meta.url).href,
+    
+    //------Configuración de iconos de bebidas frías------//
+    'item_bubble_tea': new URL('../assets/icons/BebidasFrias/Bubble_Tea.webp', import.meta.url).href,
+    'item_chamoyada': new URL('../assets/icons/BebidasFrias/Chamoyada.webp', import.meta.url).href,
+    'item_frappe_sencillo': new URL('../assets/icons/BebidasFrias/Frappe_Sencillo.webp', import.meta.url).href,
+    'item_frappe_especial': new URL('../assets/icons/BebidasFrias/Frappe_Especial.webp', import.meta.url).href,
+    'item_malteada_sencilla': new URL('../assets/icons/BebidasFrias/Malteada_Sencilla.webp', import.meta.url).href,
+    'item_malteada_especial': new URL('../assets/icons/BebidasFrias/Malteada_Especial.webp', import.meta.url).href,
+    'item_soda_italiana': new URL('../assets/icons/BebidasFrias/Soda_Italiana.webp', import.meta.url).href,
+    //--------------------------------------------//
+
+    //------Configuración de iconos de postres------//
+    'item_gelatina_rompope': new URL('../assets/icons/Gelatina_Rompope.webp', import.meta.url).href,
+    'item_pay_limon': new URL('../assets/icons/Pay_Limon.webp', import.meta.url).href,
+    'item_gelatina_mosaico': new URL('../assets/icons/Gelatina_Mosaico.webp', import.meta.url).href,
+    'item_arroz_leche': new URL('../assets/icons/Arroz_Leche.webp', import.meta.url).href,
+    'item_flan_napolitano': new URL('../assets/icons/Flan_Napolitano.webp', import.meta.url).href,
+    'item_flan_vainilla': new URL('../assets/icons/Flan_Vainilla.webp', import.meta.url).href,
+    'item_uvas_verdes_crema': new URL('../assets/icons/Uvas_Verdes_Crema.webp', import.meta.url).href,
+    'item_frutos_rojos_crema': new URL('../assets/icons/Frutos_Rojos_Crema.webp', import.meta.url).href,
+    'item_duraznos_crema': new URL('../assets/icons/Duraznos_Crema.webp', import.meta.url).href,
+
+    //--------------------------------------------//
+
+
 };
 
 const KawaiiIcon: React.FC<{ iconKey?: string }> = ({ iconKey }) => {
@@ -46,14 +98,6 @@ const KawaiiIcon: React.FC<{ iconKey?: string }> = ({ iconKey }) => {
         );
     }
 
-    // Fallback based on keys if image fails or is missing
-    if (iconKey?.includes('sweet') || iconKey?.includes('dessert') || iconKey?.includes('cake')) return <span className="text-5xl">🍰</span>;
-    if (iconKey?.includes('savory') || iconKey?.includes('crepizza')) return <span className="text-5xl">🍕</span>;
-    if (iconKey?.includes('coffee') || iconKey?.includes('latte') || iconKey?.includes('americano')) return <span className="text-5xl">☕</span>;
-    if (iconKey?.includes('frappe') || iconKey?.includes('smoothie') || iconKey?.includes('milkshake')) return <span className="text-5xl">🥤</span>;
-    if (iconKey?.includes('soda')) return <span className="text-5xl">🥤</span>;
-    if (iconKey?.includes('tea')) return <span className="text-5xl">🧋</span>;
-    if (iconKey?.includes('waffle')) return <span className="text-5xl">🧇</span>;
     return <span className="text-4xl text-gray-400">🍽️</span>;
 };
 
@@ -78,20 +122,32 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     }
 
     // Crepas Dulces
-    if (id.includes('item_frutos_rojos') || id.includes('dulce_cajeta') || id.includes('dulce_rompope') ||
-        id.includes('dulce_tentacion') || id.includes('dulce_fresa') || id.includes('dulce_durazno') ||
-        id.includes('delicia_casa') || id.includes('dulce_platano') || id.includes('dulce_tropical') ||
-        id.includes('dulce_nutella') || id.includes('banana_caramel') || id.includes('strudel_manzana')) {
-        return <KawaiiIcon iconKey="crepe_sweet" />;
-    }
+    if (id === 'item_frutos_rojos') return <KawaiiIcon iconKey="item_frutos_rojos" />;
+    if (id === 'item_dulce_cajeta') return <KawaiiIcon iconKey="item_dulce_cajeta" />;
+    if (id === 'item_dulce_rompope') return <KawaiiIcon iconKey="item_dulce_rompope" />;
+    if (id === 'item_dulce_tentacion') return <KawaiiIcon iconKey="item_dulce_tentacion" />;
+    if (id === 'item_dulce_fresa') return <KawaiiIcon iconKey="item_dulce_fresa" />;
+    if (id === 'item_dulce_durazno') return <KawaiiIcon iconKey="item_dulce_durazno" />;
+    if (id === 'item_delicia_casa') return <KawaiiIcon iconKey="item_delicia_casa" />;
+    if (id === 'item_dulce_platano') return <KawaiiIcon iconKey="item_dulce_platano" />;
+    if (id === 'item_dulce_tropical') return <KawaiiIcon iconKey="item_dulce_tropical" />;
+    if (id === 'item_dulce_nutella') return <KawaiiIcon iconKey="item_dulce_nutella" />;
+    if (id === 'item_banana_caramel') return <KawaiiIcon iconKey="item_banana_caramel" />;
+    if (id === 'item_strudel_manzana') return <KawaiiIcon iconKey="item_strudel_manzana" />;
 
     // Crepas Saladas
-    if (id.includes('hawaiana') || id.includes('italiana') || id.includes('crepizza') ||
-        id.includes('tres_quesos') || id.includes('suprema') || id.includes('clasica') ||
-        id.includes('chiken_tender') || id.includes('rajas_crema') || id.includes('vegetariana') ||
-        id.includes('española') || id.includes('champiqueso') || id.includes('carnes_frias')) {
-        return <KawaiiIcon iconKey="crepe_savory" />;
-    }
+    if (id === 'item_hawaiana') return <KawaiiIcon iconKey="item_hawaiana" />;
+    if (id === 'item_italiana') return <KawaiiIcon iconKey="item_italiana" />;
+    if (id === 'item_crepizza') return <KawaiiIcon iconKey="item_crepizza" />;
+    if (id === 'item_tres_quesos') return <KawaiiIcon iconKey="item_tres_quesos" />;
+    if (id === 'item_suprema') return <KawaiiIcon iconKey="item_suprema" />;
+    if (id === 'item_clasica') return <KawaiiIcon iconKey="item_clasica" />;
+    if (id === 'item_chiken_tender') return <KawaiiIcon iconKey="item_chiken_tender" />;
+    if (id === 'item_rajas_crema') return <KawaiiIcon iconKey="item_rajas_crema" />;
+    if (id === 'item_vegetariana') return <KawaiiIcon iconKey="item_vegetariana" />;
+    if (id === 'item_española') return <KawaiiIcon iconKey="item_española" />;
+    if (id === 'item_champiqueso') return <KawaiiIcon iconKey="item_champiqueso" />;
+    if (id === 'item_carnes_frias') return <KawaiiIcon iconKey="item_carnes_frias" />;
 
     // 2. BEBIDAS CALIENTES
     if (id === 'item_americano') return <KawaiiIcon iconKey="item_americano" />;
@@ -107,28 +163,25 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     if (id === 'item_chocolate_blanco') return <KawaiiIcon iconKey="item_chocolate_blanco" />;
 
     // 3. BEBIDAS FRÍAS
-    if (id.includes('item_chamoyada') || category.includes('chamoyada') || name.includes('chamoyada')) return <KawaiiIcon iconKey="chamoyada" />;
-    if (id.includes('item_frapp') || category.includes('frapp') || name.includes('frapp')) return <KawaiiIcon iconKey="frappe" />;
-    if (id.includes('item_licuado') || category.includes('licuado') || name.includes('licuado')) return <KawaiiIcon iconKey="smoothie" />;
-    if (id.includes('item_malteada') || category.includes('malteada') || name.includes('malteada')) return <KawaiiIcon iconKey="milkshake" />;
-    if (id.includes('item_soda')) return <KawaiiIcon iconKey="soda" />;
-    if (id.includes('item_bubble_tea') || category.includes('bubble tea') || name.includes('bubble tea') || name.includes('bublee'))
-        return <KawaiiIcon iconKey="bubble_tea" />;
+    if (id === 'item_chamoyada') return <KawaiiIcon iconKey="item_chamoyada" />;
+    if (id === 'item_frap_sen') return <KawaiiIcon iconKey="item_frappe_sencillo" />;
+    if (id === 'item_frap_esp') return <KawaiiIcon iconKey="item_frappe_especial" />;
+    if (id === 'item_malt_sen') return <KawaiiIcon iconKey="item_malteada_sencilla" />;
+    if (id === 'item_malt_esp') return <KawaiiIcon iconKey="item_malteada_especial" />;
+    if (id === 'item_soda') return <KawaiiIcon iconKey="item_soda_italiana" />;
+    if (id === 'item_bubble_tea') return <KawaiiIcon iconKey="item_bubble_tea" />;
 
     // 4. OTROS POSTRES
-    if (id.includes('item_hotcake') || category.includes('hotcake') || name.includes('hot cake') || name.includes('hotcake')) return <KawaiiIcon iconKey="hotcakes" />;
-    if (id.includes('item_waffle') || category.includes('waffle') || name.includes('waffle')) return <KawaiiIcon iconKey="waffle" />;
-
     // Mapeos por categoría o grupo
-    if (id.includes('postres_fijos') || id.includes('postres') || category.includes('postres')) return <KawaiiIcon iconKey="dessert" />;
-    if (id.includes('dulces') || category.includes('dulces')) return <KawaiiIcon iconKey="crepe_sweet" />;
-    if (id.includes('saladas') || category.includes('saladas')) return <KawaiiIcon iconKey="crepe_savory" />;
-    if (id.includes('bebidas_frias') || category.includes('frias')) return <KawaiiIcon iconKey="bubble_tea" />;
-    if (id.includes('bebidas_calientes') || category.includes('calientes')) return <KawaiiIcon iconKey="coffee_hot" />;
-    if (id.includes('bebidas')) return <KawaiiIcon iconKey="coffee_hot" />;
-
-    if (id.includes('bublee') || category.includes('bublee')) return <span className="text-5xl">🧋</span>;
-
+    if (id === 'hotcakes') return <KawaiiIcon iconKey="item_hotcakes" />;
+    if (id === 'waffles') return <KawaiiIcon iconKey="item_waffles" />;
+    if (id === 'mini_hotcakes') return <KawaiiIcon iconKey="item_mini_hotcakes" />;
+    if (id === 'postres') return <KawaiiIcon iconKey="item_postres" />;
+    if (id === 'crepas_dulces') return <KawaiiIcon iconKey="item_crepas_dulces" />;
+    if (id === 'crepas_saladas') return <KawaiiIcon iconKey="item_crepas_saladas" />;
+    if (id === 'bebidas_frias') return <KawaiiIcon iconKey="item_bebidas_frias" />;
+    if (id === 'bebidas_calientes') return <KawaiiIcon iconKey="item_bebidas_calientes" />;
+    if (id === 'item_bebidas') return <KawaiiIcon iconKey="item_bebidas" />;
     // DEFAULT
     return isGroup(item) ? null : <span className="text-4xl text-gray-400">🍽️</span>;
 }
