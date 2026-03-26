@@ -21,13 +21,13 @@ export const ICON_WEBPS: Record<string, string> = {
     'item_dulce_tropical': new URL('../assets/icons/CrepasDulces/Crepa_Dulce_Tropical.webp', import.meta.url).href,
     'item_frutos_rojos': new URL('../assets/icons/CrepasDulces/Crepa_Frutos_Rojos.webp', import.meta.url).href,
     'item_strudel_manzana': new URL('../assets/icons/CrepasDulces/Crepa_Strudel_Manzana.webp', import.meta.url).href,
-    
-    // 'item_dulce_rompope': new URL('../assets/icons/Crepa_Rompope.webp', import.meta.url).href,
-    // 'item_dulce_tentacion': new URL('../assets/icons/Crepa_Tentacion.webp', import.meta.url).href,
-    // 'item_dulce_durazno': new URL('../assets/icons/Crepa_Durazno.webp', import.meta.url).href,
-    // 'item_dulce_platano': new URL('../assets/icons/Crepa_Dulce_Platano.webp', import.meta.url).href,
-    // 'item_dulce_nutella': new URL('../assets/icons/Crepa_Dulce_Nutella.webp', import.meta.url).href,
-    
+    'item_dulce_rompope': new URL('../assets/icons/CrepasDulces/Crepa_Dulce_Rompope.webp', import.meta.url).href,
+    'item_dulce_tentacion': new URL('../assets/icons/CrepasDulces/Crepa_Dulce_Tentacion.webp', import.meta.url).href,
+    'item_dulce_durazno': new URL('../assets/icons/CrepasDulces/Crepa_Dulce_Durazno.webp', import.meta.url).href,
+    'item_dulce_platano': new URL('../assets/icons/CrepasDulces/Crepa_Dulce_Platano.webp', import.meta.url).href,
+    'item_dulce_nutella': new URL('../assets/icons/CrepasDulces/Crepa_Dulce_Nutella.webp', import.meta.url).href,
+    'item_dulce_cajeta': new URL('../assets/icons/CrepasDulces/Crepa_Dulce_Cajeta.webp', import.meta.url).href,
+    'armar_crepa_dulce': new URL('../assets/icons/CrepasDulces/Crepa_Dulce_Armar.webp', import.meta.url).href,
     //-----------------------------------------------//
     
     //------Configuración de iconos de crepas saladas------//
@@ -43,6 +43,7 @@ export const ICON_WEBPS: Record<string, string> = {
     'item_suprema': new URL('../assets/icons/CrepasSaladas/Crepa_Suprema.webp', import.meta.url).href,
     'item_tres_quesos': new URL('../assets/icons/CrepasSaladas/Crepa_Tres_Quesos.webp', import.meta.url).href,
     'item_vegetariana': new URL('../assets/icons/CrepasSaladas/Crepa_Vegetariana.webp', import.meta.url).href,
+    'armar_crepa_salada': new URL('../assets/icons/CrepasSaladas/Crepa_Salada_Armar.webp', import.meta.url).href,
     //-----------------------------------------------//
     
     //------Configuración de iconos de bebidas calientes------//
@@ -134,7 +135,8 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     if (id === 'item_dulce_nutella') return <KawaiiIcon iconKey="item_dulce_nutella" />;
     if (id === 'item_banana_caramel') return <KawaiiIcon iconKey="item_banana_caramel" />;
     if (id === 'item_strudel_manzana') return <KawaiiIcon iconKey="item_strudel_manzana" />;
-
+    if (id === 'armar_crepa_dulce') return <KawaiiIcon iconKey="armar_crepa_dulce" />;
+    
     // Crepas Saladas
     if (id === 'item_hawaiana') return <KawaiiIcon iconKey="item_hawaiana" />;
     if (id === 'item_italiana') return <KawaiiIcon iconKey="item_italiana" />;
@@ -148,7 +150,7 @@ export function getIconForItem(item: MenuItem | MenuGroup): React.ReactNode {
     if (id === 'item_española') return <KawaiiIcon iconKey="item_española" />;
     if (id === 'item_champiqueso') return <KawaiiIcon iconKey="item_champiqueso" />;
     if (id === 'item_carnes_frias') return <KawaiiIcon iconKey="item_carnes_frias" />;
-
+    if (id === 'armar_crepa_salada') return <KawaiiIcon iconKey="armar_crepa_salada" />;
     // 2. BEBIDAS CALIENTES
     if (id === 'item_americano') return <KawaiiIcon iconKey="item_americano" />;
     if (id === 'item_capuchino') return <KawaiiIcon iconKey="item_capuchino" />;
