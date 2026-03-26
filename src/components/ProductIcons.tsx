@@ -2,7 +2,7 @@
 import React from 'react';
 import type { MenuItem, MenuGroup } from '../types/menu';
 
-const ICON_WEBPS: Record<string, string> = {
+export const ICON_WEBPS: Record<string, string> = {
     'crepe_sweet': new URL('../assets/icons/crepe-sweet.webp', import.meta.url).href,
     'crepe_savory': new URL('../assets/icons/crepe-savory.webp', import.meta.url).href,
     'coffee_hot': new URL('../assets/icons/BebidaCaliente.webp', import.meta.url).href,
