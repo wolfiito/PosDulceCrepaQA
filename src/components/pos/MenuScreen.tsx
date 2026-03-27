@@ -22,31 +22,44 @@ export const MenuScreen: React.FC = () => {
     const isRoot = !currentGroup;
 
     const isItemOutOfStock = (item: MenuItem | MenuGroup) => {
-        if ('level' in item) return false; 
         const inv = stockData[item.id];
         const isTracked = (item as any).trackStock === true || inv?.trackStock === true;
-        const realStock = inv?.currentStock ?? 0;
+        const realStock = Number(inv?.currentStock) || 0;
         
-        // 1. Verificar el stock base directo del producto
+        // 1. Check direct stock for the item if tracked
         if (isTracked && realStock <= 0) return true;
 
-        // 2. Revisar si grupos requeridos de modificadores están vacíos
+        // Helper to check if a group has any available options
+        const hasOptionsInStock = (groupId: string) => {
+            const modsForGroup = modifiers.filter(m => m.group === groupId);
+            // If the group has no modifiers defined at all, we don't block it here (might be a configuration error elsewhere)
+            if (modsForGroup.length === 0) return true;
+
+            return modsForGroup.some(mod => {
+                if (activeBranchId && mod.disabledIn?.includes(activeBranchId)) return false;
+                const minv = stockData[mod.id];
+                const mTracked = mod.trackStock === true || minv?.trackStock === true;
+                const mStock = Number(minv?.currentStock) || 0;
+                return !mTracked || mStock > 0;
+            });
+        };
+
+        // 2. For custom groups (like "Armar Crepa"), check the base_group
+        if ('level' in item) {
+            const group = item as MenuGroup;
+            if (group.base_group) {
+                if (!hasOptionsInStock(group.base_group)) return true;
+            }
+            return false;
+        }
+
+        // 3. For products, check if any required (exclusive) modifier group is empty
         const menuItem = item as MenuItem;
         if (menuItem.modifierGroups && menuItem.modifierGroups.length > 0) {
             for (const groupId of menuItem.modifierGroups) {
-                const isExclusive = EXCLUSIVE_GROUPS.includes(groupId) || groupId === 'tipo_leche' || groupId === 'bubble_estilo';
-                if (isExclusive) {
-                    const modsForGroup = modifiers.filter(m => m.group === groupId);
-                    const hasAnyInStock = modsForGroup.some(mod => {
-                        if (activeBranchId && mod.disabledIn?.includes(activeBranchId)) return false;
-                        const minv = stockData[mod.id];
-                        const mTracked = mod.trackStock === true || minv?.trackStock === true;
-                        const mStock = minv?.currentStock ?? 0;
-                        if (mTracked && mStock <= 0) return false; 
-                        return true; 
-                    });
-                    
-                    if (!hasAnyInStock) return true; // El sabor base de la familia agotado = producto base agotado
+                const isExclusive = EXCLUSIVE_GROUPS.includes(groupId);
+                if (isExclusive && !hasOptionsInStock(groupId)) {
+                    return true;
                 }
             }
         }

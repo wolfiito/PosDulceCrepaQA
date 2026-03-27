@@ -128,6 +128,24 @@ export const shiftService = {
         totalExpenses += Number(d.amount) || 0;
     });
 
+    const productMap = new Map<string, { name: string, quantity: number, total: number }>();
+    
+    orders.forEach(order => {
+        order.items.forEach((item: any) => {
+            const name = item.baseName;
+            const qty = item.quantity || 1;
+            const price = item.finalPrice || 0;
+            const existing = productMap.get(name) || { name, quantity: 0, total: 0 };
+            productMap.set(name, {
+                name,
+                quantity: existing.quantity + qty,
+                total: existing.total + price
+            });
+        });
+    });
+
+    const productBreakdown = Array.from(productMap.values()).sort((a, b) => b.total - a.total);
+
     const totalSales = cashTotal + cardTotal + transferTotal;
     const expectedCash = shift.initialFund + cashTotal - totalExpenses;
     const netTotal = totalSales - totalExpenses;
@@ -146,7 +164,7 @@ export const shiftService = {
       expenses: expenses,
       netBalance: netTotal,
       productCount: productCount,
-      productBreakdown: [], 
+      productBreakdown: productBreakdown, 
       ingredientBreakdown: [] 
     };
   },
