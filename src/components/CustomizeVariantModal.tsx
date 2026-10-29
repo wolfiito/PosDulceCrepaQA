@@ -2,7 +2,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import Modal from 'react-modal';
 import type { VariantPriceItem, FixedPriceItem, Modifier, TicketItem, MenuItem } from '../types/menu'; 
-import { EXCLUSIVE_GROUPS } from '../constants/menuConstants'; // Usamos tu lista maestra de exclusividad
+import { EXCLUSIVE_GROUPS } from '../constants/menuConstants';
+import { getBranchPrice } from '../utils/pricing';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { useAuthStore } from '../store/useAuthStore';
 
@@ -16,7 +17,7 @@ interface Props {
   onAddItem: (item: TicketItem) => void;
 }
 
-const initialVariant = { name: '', price: 0, cost: 0 };
+const initialVariant: VariantPriceItem['variants'][number] = { name: '', price: 0, cost: 0 };
 
 function isVariantPrice(item: MenuItem): item is VariantPriceItem {
   return 'variants' in item;
@@ -36,10 +37,6 @@ export function CustomizeVariantModal({ isOpen, onClose, item, allModifiers, onA
     const { stockData } = useInventoryStore();
     const { activeBranchId } = useAuthStore();
 
-    const getPrice = (obj: any) => {
-        if (!obj) return 0;
-        return obj.branchPrices?.[activeBranchId || ''] ?? obj.price ?? 0;
-    };
 
     useEffect(() => {
         if (isOpen && item) {
@@ -51,10 +48,15 @@ export function CustomizeVariantModal({ isOpen, onClose, item, allModifiers, onA
 
     // --- CÁLCULO DE PRECIOS ---
     const { price: currentPrice, cost: currentCost } = useMemo(() => {
-        const variantPrice = isVariantPrice(item) ? selectedVariant.price : item.price;
+        const variantPrice = isVariantPrice(item)
+            ? getBranchPrice(selectedVariant.price, selectedVariant.branchPrices, activeBranchId)
+            : getBranchPrice(item.price, item.branchPrices, activeBranchId);
         const baseCost = isVariantPrice(item) ? (selectedVariant.cost || 0) : (item.cost || 0);
         
-        const extraPrice = Array.from(selectedModifiers.values()).reduce((sum, mod) => sum + mod.price, 0);
+        const extraPrice = Array.from(selectedModifiers.values()).reduce(
+            (sum, mod) => sum + getBranchPrice(mod.price, mod.branchPrices, activeBranchId),
+            0
+        );
         const extraCost = Array.from(selectedModifiers.values()).reduce((sum, mod) => sum + (mod.cost || 0), 0);
         
         return { 
@@ -135,6 +137,8 @@ export function CustomizeVariantModal({ isOpen, onClose, item, allModifiers, onA
     }, [currentStep, selectedModifiers, selectedVariant]);
 
     // --- HANDLERS ---
+    const [quantity, setQuantity] = useState(1);
+
     const handleModifierChange = (modifier: Modifier, isExclusive: boolean) => {
         setSelectedModifiers(prev => {
             const newMap = new Map(prev);
@@ -162,10 +166,12 @@ export function CustomizeVariantModal({ isOpen, onClose, item, allModifiers, onA
         const modsArray = Array.from(selectedModifiers.values());
         onAddItem({
             id: Date.now().toString(),
+            productId: item.id,
             baseName: item.name,
             finalPrice: currentPrice,
             finalCost: currentCost,
             type: isVariantPrice(item) ? 'VARIANT' : 'FIXED',
+            quantity: quantity,
             details: {
                 itemId: item.id,
                 variantName: isVariantPrice(item) ? selectedVariant.name : '',
@@ -176,6 +182,12 @@ export function CustomizeVariantModal({ isOpen, onClose, item, allModifiers, onA
     
     const handleNext = () => { if (isStepValid) setStep(s => s + 1); };
     const handlePrev = () => setStep(s => s - 1);
+
+    useEffect(() => {
+        if (isOpen) {
+            setQuantity(1);
+        }
+    }, [isOpen]);
 
     if (!currentStep) return null;
 
@@ -194,7 +206,7 @@ export function CustomizeVariantModal({ isOpen, onClose, item, allModifiers, onA
                     ))}
                 </div>
                  <div className={`badge badge-lg font-bold transition-colors duration-300 ${isStepValid ? 'badge-success text-success-content' : 'badge-ghost opacity-50'}`}>
-                    Total: ${currentPrice.toFixed(2)}
+                    Total: ${(currentPrice * quantity).toFixed(2)}
                 </div>
             </div>
             
@@ -208,7 +220,7 @@ export function CustomizeVariantModal({ isOpen, onClose, item, allModifiers, onA
                     {/* TAMAÑOS */}
                     {currentStep.type === 'variant_selector' && (currentStep.options as any[]).map(variant => {
                         const isSelected = selectedVariant.name === variant.name;
-                        const vPrice = getPrice(variant); // <--- LEE EL PRECIO DE SUCURSAL
+                        const vPrice = getBranchPrice(variant.price, variant.branchPrices, activeBranchId);
                         return (
                             <button
                                 key={variant.name}
@@ -229,6 +241,7 @@ export function CustomizeVariantModal({ isOpen, onClose, item, allModifiers, onA
                     {/* MODIFICADORES */}
                     {currentStep.type === 'modifier_selector' && (currentStep.options as Modifier[]).map(mod => {
                         const isSelected = selectedModifiers.has(mod.id);
+                        const modifierPrice = getBranchPrice(mod.price, mod.branchPrices, activeBranchId);
                         return (
                             <button
                                 key={mod.id}
@@ -239,9 +252,9 @@ export function CustomizeVariantModal({ isOpen, onClose, item, allModifiers, onA
                                 `}
                             >
                                 <span className="text-sm font-semibold">{mod.name}</span> 
-                                {mod.price > 0 && (
+                                {modifierPrice > 0 && (
                                     <span className={`text-xs font-normal mt-1 ${isSelected ? 'text-primary-content/90' : 'text-base-content/60'}`}>
-                                        +${mod.price.toFixed(2)}
+                                        +${modifierPrice.toFixed(2)}
                                     </span>
                                 )}
                             </button>
@@ -250,20 +263,45 @@ export function CustomizeVariantModal({ isOpen, onClose, item, allModifiers, onA
                 </div>
             </div>
             
-            <div className="p-4 border-t border-base-200 bg-base-100 flex gap-3">
-                <button onClick={step === 0 ? onClose : handlePrev} className="btn btn-ghost text-base-content/70">
-                    {step === 0 ? 'Cancelar' : 'Atrás'}
-                </button>
-
-                {isLastStep ? (
-                    <button onClick={handleAddToTicket} disabled={!isStepValid} className="btn btn-primary flex-1 shadow-lg shadow-primary/20">
-                        Agregar ${currentPrice.toFixed(2)}
-                    </button>
-                ) : (
-                    <button onClick={handleNext} disabled={!isStepValid} className="btn btn-secondary flex-1">
-                        Siguiente
-                    </button>
+            <div className="p-4 border-t border-base-200 bg-base-100 flex flex-col gap-4">
+                {/* Selector de Cantidad */}
+                {isLastStep && isStepValid && (
+                    <div className="flex items-center justify-center gap-6 py-2 animate-fade-in">
+                        <span className="text-xs font-bold uppercase opacity-50">Cantidad</span>
+                        <div className="flex items-center gap-4">
+                            <button 
+                                onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                                className="btn btn-circle btn-sm btn-outline btn-primary"
+                                disabled={quantity <= 1}
+                            >
+                                －
+                            </button>
+                            <span className="text-2xl font-black font-mono w-8 text-center">{quantity}</span>
+                            <button 
+                                onClick={() => setQuantity(q => q + 1)}
+                                className="btn btn-circle btn-sm btn-outline btn-primary"
+                            >
+                                ＋
+                            </button>
+                        </div>
+                    </div>
                 )}
+
+                <div className="flex gap-3">
+                    <button onClick={step === 0 ? onClose : handlePrev} className="btn btn-ghost text-base-content/70">
+                        {step === 0 ? 'Cancelar' : 'Atrás'}
+                    </button>
+
+                    {isLastStep ? (
+                        <button onClick={handleAddToTicket} disabled={!isStepValid} className="btn btn-primary flex-1 shadow-lg shadow-primary/20">
+                            Agregar ${(currentPrice * quantity).toFixed(2)}
+                        </button>
+                    ) : (
+                        <button onClick={handleNext} disabled={!isStepValid} className="btn btn-secondary flex-1">
+                            Siguiente
+                        </button>
+                    )}
+                </div>
             </div>
         </Modal>
     );

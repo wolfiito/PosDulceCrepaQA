@@ -1,12 +1,11 @@
 // src/components/ReportsScreen.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend,
+  AreaChart, Area
 } from 'recharts';
 import { toast } from 'sonner';
 import { Timestamp } from '../firebase';
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
 
 // Servicios y Stores
 import { reportService } from '../services/reportService';
@@ -132,7 +131,7 @@ export const ReportsScreen: React.FC = () => {
   const { activeBranchId } = useAuthStore(); // <--- OBTENER SUCURSAL
   
   // Eliminamos 'inventario' de las opciones de tab
-  const [tab, setTab] = useState<'ventas' | 'tickets'>('ventas');
+  const [tab, setTab] = useState<'ventas' | 'tickets' | 'analisis'>('ventas');
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<DailyReportData | null>(null);
   
@@ -260,6 +259,104 @@ export const ReportsScreen: React.FC = () => {
 
   const averageTicket = data && data.totalOrders > 0 ? data.totalSales / data.totalOrders : 0;
 
+  const analyticsData = useMemo(() => {
+      if (!data || !data.orders) return null;
+
+      // --- 1. Combinaciones de ingredientes (solo crepas personalizadas) ---
+      const combosMap = new Map<string, number>();
+      data.orders.forEach(order => {
+          if (order.status !== 'paid') return;
+          order.items.forEach((item: any) => {
+              // Solo analizamos items CUSTOM ("Arma tu Crepa") para detectar combinaciones reales
+              if (item.type === 'CUSTOM' && item.details?.selectedModifiers && item.details.selectedModifiers.length > 0) {
+                  const mods = item.details.selectedModifiers.map((m: any) => m.name).sort();
+                  const comboName = mods.join(' + ');
+                  if (comboName) combosMap.set(comboName, (combosMap.get(comboName) || 0) + (item.quantity || 1));
+              }
+          });
+      });
+      const topCombinations = Array.from(combosMap.entries())
+          .map(([name, count]) => ({ name, count }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 8);
+
+      // --- 2. Productos menos vendidos ---
+      const allProducts = [...data.productBreakdown].sort((a, b) => a.quantity - b.quantity);
+      const worstProducts = allProducts.filter(p => p.quantity > 0).slice(0, 5);
+
+      // --- 3. Ventas por hora ---
+      const hourMap = new Map<number, { ventas: number; total: number }>();
+      for (let h = 8; h <= 22; h++) hourMap.set(h, { ventas: 0, total: 0 });
+      data.orders.forEach(order => {
+          if (order.status !== 'paid') return;
+          const d = order.createdAt instanceof Timestamp ? order.createdAt.toDate() : new Date(order.createdAt as any);
+          const h = d.getHours();
+          const cur = hourMap.get(h) || { ventas: 0, total: 0 };
+          cur.ventas += 1;
+          cur.total += order.total;
+          hourMap.set(h, cur);
+      });
+      const salesByHour = Array.from(hourMap.entries())
+          .map(([hour, vals]) => ({ hora: `${hour}:00`, ventas: vals.ventas, total: Math.round(vals.total) }))
+          .sort((a, b) => parseInt(a.hora) - parseInt(b.hora));
+
+      // --- 4. Top ingredientes individuales ---
+      const topIngredients = data.ingredientBreakdown.slice(0, 10);
+
+      // --- 5. Revenue por producto (top 8) ---
+      const revenueByProduct = [...data.productBreakdown]
+          .sort((a, b) => b.total - a.total)
+          .slice(0, 8)
+          .map(p => ({ name: p.name, ingresos: Math.round(p.total), cantidad: p.quantity }));
+
+      // --- 6. Propuestas de crepas especiales ---
+      const proposedSpecials = topCombinations.slice(0, 3).map((combo, idx) => {
+          const creativeNames = ['La Favorita', 'La Consentida', 'La Clásica'];
+          return {
+              nombre: creativeNames[idx] || `Especial ${idx + 1}`,
+              ingredientes: combo.name,
+              popularidad: combo.count,
+          };
+      });
+
+      // --- 7. Hora pico ---
+      const peakHour = salesByHour.reduce((best, cur) => cur.ventas > best.ventas ? cur : best, salesByHour[0]);
+
+      // --- 8. Modo de venta más frecuente ---
+      const modeMap = new Map<string, number>();
+      data.orders.forEach(o => { if (o.status === 'paid') modeMap.set(o.mode, (modeMap.get(o.mode) || 0) + 1); });
+      const topMode = Array.from(modeMap.entries()).sort((a, b) => b[1] - a[1])[0];
+
+      // --- 9. Recomendaciones inteligentes ---
+      const recommendations: string[] = [];
+      if (topCombinations.length > 0 && topCombinations[0].count >= 2) {
+          recommendations.push(`🔥 Tu combinación estrella es "${topCombinations[0].name}" con ${topCombinations[0].count} pedidos. ¡Créala como crepa especial del menú!`);
+      }
+      if (topCombinations.length >= 2) {
+          recommendations.push(`✨ La 2da combinación más popular es "${topCombinations[1].name}". Podría ser tu segunda crepa especial.`);
+      }
+      if (worstProducts.length > 0) {
+          recommendations.push(`📉 "${worstProducts[0].name}" tiene solo ${worstProducts[0].quantity} ventas. Considera una promo o retíralo del menú.`);
+      }
+      if (peakHour && peakHour.ventas > 0) {
+          recommendations.push(`⏰ Tu hora pico es a las ${peakHour.hora} con ${peakHour.ventas} ventas. Refuerza personal o insumos en ese horario.`);
+      }
+      if (data.totalSales > 0 && data.netBalance < data.totalSales * 0.25) {
+         recommendations.push(`⚠️ Tu margen neto es menor al 25%. Revisa tus gastos operativos urgentemente.`);
+      }
+      if (averageTicket > 0) {
+          recommendations.push(`💡 Ticket promedio: $${averageTicket.toFixed(2)}. Ofrece extras (Nutella, frutas, bebida) para subirlo.`);
+      }
+      if (topMode) {
+          recommendations.push(`🏪 El modo "${topMode[0]}" representa ${topMode[1]} de ${data.totalOrders} ventas (${((topMode[1]/data.totalOrders)*100).toFixed(0)}%).`);
+      }
+      if (topIngredients.length > 0) {
+          recommendations.push(`🥇 Tu ingrediente más usado es "${topIngredients[0].name}" (${topIngredients[0].quantity} veces). Asegúrate de tener stock suficiente.`);
+      }
+
+      return { topCombinations, worstProducts, salesByHour, topIngredients, revenueByProduct, proposedSpecials, recommendations };
+  }, [data, averageTicket]);
+
   return (
     <div className="animate-fade-in w-full max-w-7xl mx-auto pb-24 px-2 md:px-4">
         
@@ -283,7 +380,7 @@ export const ReportsScreen: React.FC = () => {
             <div role="tablist" className="tabs tabs-boxed bg-base-200 shadow-sm">
                 <a role="tab" className={`tab flex-1 ${tab === 'ventas' ? 'tab-active bg-white shadow font-bold' : ''}`} onClick={() => setTab('ventas')}>💰 Finanzas</a>
                 <a role="tab" className={`tab flex-1 ${tab === 'tickets' ? 'tab-active bg-white shadow font-bold' : ''}`} onClick={() => setTab('tickets')}>🧾 Tickets</a>
-                {/* PESTAÑA INVENTARIO ELIMINADA */}
+                <a role="tab" className={`tab flex-1 ${tab === 'analisis' ? 'tab-active bg-white shadow font-bold' : ''}`} onClick={() => setTab('analisis')}>🧠 Análisis</a>
             </div>
         </div>
 
@@ -376,6 +473,192 @@ export const ReportsScreen: React.FC = () => {
                     ) : (
                         <div className="col-span-full text-center py-10 opacity-50">No hay tickets.</div>
                     )}
+                </div>
+            </div>
+        )}
+
+        {/* --- VISTA 3: ANÁLISIS AVANZADO --- */}
+        {tab === 'analisis' && data && analyticsData && (
+            <div className="space-y-6 animate-fade-in">
+
+                {/* === BLOQUE 1: RECOMENDACIONES INTELIGENTES === */}
+                <div className="card bg-gradient-to-br from-primary/5 to-secondary/5 shadow-lg border border-primary/10">
+                    <div className="card-body p-5">
+                        <h3 className="font-black text-lg mb-3 flex items-center gap-2">🤖 Insights y Recomendaciones</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {analyticsData.recommendations.map((rec, idx) => (
+                                <div key={idx} className="bg-base-100 p-4 rounded-xl border border-base-200 text-sm shadow-sm hover:shadow-md transition-shadow">
+                                    {rec}
+                                </div>
+                            ))}
+                            {analyticsData.recommendations.length === 0 && (
+                                <div className="col-span-full opacity-50 p-4 text-center">No hay suficientes datos para generar recomendaciones.</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* === BLOQUE 2: PROPUESTAS DE CREPAS ESPECIALES === */}
+                {analyticsData.proposedSpecials.length > 0 && (
+                    <div className="card bg-base-100 shadow border border-base-200">
+                        <div className="card-body p-5">
+                            <h3 className="font-black text-lg mb-3 flex items-center gap-2">🌟 Propuestas de Crepas Especiales</h3>
+                            <p className="text-xs opacity-60 mb-4">Basado en las combinaciones más pedidas, te sugerimos crear estas crepas como productos fijos del menú.</p>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {analyticsData.proposedSpecials.map((sp, idx) => (
+                                    <div key={idx} className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl p-4 border border-amber-200/50 dark:border-amber-700/30">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-2xl">{idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'}</span>
+                                            <span className="font-black text-lg">"{sp.nombre}"</span>
+                                        </div>
+                                        <div className="text-sm opacity-80 mb-2">📋 {sp.ingredientes}</div>
+                                        <div className="text-xs font-mono font-bold text-primary">{sp.popularidad} pedidos con este mix</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* === BLOQUE 3: VENTAS POR HORA (ÁREA) === */}
+                <div className="card bg-base-100 shadow border border-base-200">
+                    <div className="card-body p-4">
+                        <h3 className="font-bold text-sm uppercase opacity-70 mb-2">⏰ Flujo de Ventas por Hora</h3>
+                        <p className="text-xs opacity-50 mb-3">Identifica tus horas pico y los momentos con menos actividad.</p>
+                        <div className="h-64">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={analyticsData.salesByHour} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="colorVentas" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                                    <XAxis dataKey="hora" tick={{ fontSize: 10 }} />
+                                    <YAxis tick={{ fontSize: 10 }} />
+                                    <Tooltip formatter={(value: number, name: string) => [name === 'ventas' ? `${value} ventas` : `$${value}`, name === 'ventas' ? 'Cantidad' : 'Ingresos']} />
+                                    <Area type="monotone" dataKey="ventas" stroke="#6366f1" fillOpacity={1} fill="url(#colorVentas)" strokeWidth={2} />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* === BLOQUE 4: COMBINACIONES ESTRELLA === */}
+                    <div className="card bg-base-100 shadow border border-base-200">
+                        <div className="card-body p-4">
+                            <h3 className="font-bold text-sm uppercase opacity-70 mb-4">🏆 Combinaciones Estrella</h3>
+                            {analyticsData.topCombinations.length > 0 ? (
+                                <div className="h-72">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={analyticsData.topCombinations} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" horizontal vertical={false} opacity={0.2} />
+                                            <XAxis type="number" hide />
+                                            <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 9 }} />
+                                            <Tooltip formatter={(value: number) => [`${value} pedidos`, 'Mix']} />
+                                            <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={18}>
+                                                {analyticsData.topCombinations.map((_entry, index) => (
+                                                    <Cell key={`combo-${index}`} fill={index === 0 ? '#f59e0b' : index === 1 ? '#10b981' : '#6366f1'} />
+                                                ))}
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            ) : (
+                                <div className="flex-1 flex items-center justify-center opacity-50 p-6 text-sm">No hay combinaciones registradas.</div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* === BLOQUE 5: PRODUCTOS CON MENOS SALIDA === */}
+                    <div className="card bg-base-100 shadow border border-base-200">
+                        <div className="card-body p-4">
+                            <h3 className="font-bold text-sm uppercase opacity-70 mb-4">📉 Productos con Menos Salida</h3>
+                            {analyticsData.worstProducts.length > 0 ? (
+                                <div className="h-72">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={analyticsData.worstProducts} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" horizontal vertical={false} opacity={0.2} />
+                                            <XAxis type="number" hide />
+                                            <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 10 }} />
+                                            <Tooltip formatter={(value: number) => [`${value} vendidos`, 'Cantidad']} />
+                                            <Bar dataKey="quantity" fill="#ef4444" radius={[0, 6, 6, 0]} barSize={18} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            ) : (
+                                <div className="flex-1 flex items-center justify-center opacity-50 p-6 text-sm">No hay datos suficientes.</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* === BLOQUE 6: TOP INGREDIENTES INDIVIDUALES === */}
+                    <div className="card bg-base-100 shadow border border-base-200">
+                        <div className="card-body p-4">
+                            <h3 className="font-bold text-sm uppercase opacity-70 mb-4">🧂 Top Ingredientes Más Usados</h3>
+                            {analyticsData.topIngredients.length > 0 ? (
+                                <div className="space-y-2">
+                                    {analyticsData.topIngredients.map((ing, idx) => {
+                                        const maxQty = analyticsData.topIngredients[0].quantity;
+                                        const pct = maxQty > 0 ? (ing.quantity / maxQty) * 100 : 0;
+                                        return (
+                                            <div key={idx} className="flex items-center gap-3 text-sm">
+                                                <span className="w-6 text-right font-mono text-xs opacity-50">#{idx + 1}</span>
+                                                <div className="flex-1">
+                                                    <div className="flex justify-between mb-1">
+                                                        <span className="font-medium truncate">{ing.name}</span>
+                                                        <span className="font-mono font-bold text-xs">{ing.quantity}</span>
+                                                    </div>
+                                                    <div className="w-full bg-base-200 rounded-full h-2">
+                                                        <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="flex-1 flex items-center justify-center opacity-50 p-6 text-sm">No hay ingredientes registrados.</div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* === BLOQUE 7: INGRESOS POR PRODUCTO === */}
+                    <div className="card bg-base-100 shadow border border-base-200">
+                        <div className="card-body p-4">
+                            <h3 className="font-bold text-sm uppercase opacity-70 mb-4">💰 Ingresos por Producto (Top 8)</h3>
+                            {analyticsData.revenueByProduct.length > 0 ? (
+                                <div className="overflow-x-auto">
+                                    <table className="table table-xs w-full">
+                                        <thead>
+                                            <tr className="text-xs uppercase opacity-60">
+                                                <th>#</th>
+                                                <th>Producto</th>
+                                                <th className="text-right">Vendidos</th>
+                                                <th className="text-right">Ingresos</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {analyticsData.revenueByProduct.map((p, idx) => (
+                                                <tr key={idx} className="hover">
+                                                    <td className="font-mono text-xs opacity-50">{idx + 1}</td>
+                                                    <td className="font-medium text-sm truncate max-w-[140px]">{p.name}</td>
+                                                    <td className="text-right font-mono text-sm">{p.cantidad}</td>
+                                                    <td className="text-right font-mono font-bold text-sm text-success">${p.ingresos}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="flex-1 flex items-center justify-center opacity-50 p-6 text-sm">Sin datos.</div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         )}

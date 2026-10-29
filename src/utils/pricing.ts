@@ -9,10 +9,17 @@ interface PriceResult {
   isValid: boolean;
 }
 
+export const getBranchPrice = (
+  price: number,
+  branchPrices: Record<string, number> | undefined,
+  branchId?: string | null
+): number => branchId ? branchPrices?.[branchId] ?? price : price;
+
 export const calculateCustomItemPrice = (
   group: MenuGroup,
   selectedModifiers: Modifier[],
-  priceRule?: PriceRule
+  priceRule?: PriceRule,
+  branchId?: string | null
 ): PriceResult => {
 
   if (!group) return { price: 0, cost: 0, ruleDescription: 'Error', isValid: false };
@@ -24,7 +31,7 @@ export const calculateCustomItemPrice = (
 
   selectedModifiers.forEach(mod => {
     if (mod.group === group.base_group) baseIngredientCount++;
-    if (mod.price > 0) extraPrice += mod.price;
+    extraPrice += getBranchPrice(mod.price, mod.branchPrices, branchId);
 
     if (mod.cost && mod.cost > 0) {
         totalCost += mod.cost;
@@ -62,10 +69,22 @@ export const calculateCustomItemPrice = (
       ruleDescription = 'Elija ingredientes base';
     }
     if (priceRule) {
-        const matchedRule = [...priceRule.basePrices]
-            .sort((a, b) => b.count - a.count)
-            .find(r => baseIngredientCount >= r.count);
-        basePrice = matchedRule?.price || 0;
+        const sortedRules = [...priceRule.basePrices].sort((a, b) => b.count - a.count);
+        const maxRule = sortedRules[0];
+
+        if (maxRule && baseIngredientCount > maxRule.count) {
+            // HÍBRIDO: Usamos el tope de la lista y sumamos el incremento dinámico
+            const extraIngredients = baseIngredientCount - maxRule.count;
+            const increment = priceRule.incrementPerIngredient ?? 5;
+            basePrice = maxRule.price + (extraIngredients * increment);
+        } else if (maxRule) {
+            // TRADICIONAL: Buscamos en la lista (exact o más cercano por debajo)
+            const matchedRule = sortedRules.find(r => baseIngredientCount >= r.count);
+            basePrice = matchedRule?.price || 0;
+        } else if (priceRule.initialPrice !== undefined && priceRule.incrementPerIngredient !== undefined) {
+            // LINEAL PURO: (Si basePrices está vacío)
+            basePrice = priceRule.initialPrice + (Math.max(0, baseIngredientCount - 1) * priceRule.incrementPerIngredient);
+        }
     }
   }
   else {

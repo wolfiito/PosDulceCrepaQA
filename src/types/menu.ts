@@ -35,6 +35,7 @@ export interface FixedPriceItem {
     name: string;
     price: number;
     cost?: number;
+    branchPrices?: Record<string, number>;
     group: string; 
     trackStock?: boolean;
     currentStock?: number;
@@ -44,6 +45,10 @@ export interface FixedPriceItem {
   export interface PriceRule {
     id: string;
     name: string;
+    initialPrice?: number; // Precio para 1 ingrediente
+    incrementPerIngredient?: number; // Costo por cada ingrediente adicional
+    branchInitialPrices?: Record<string, number>;
+    branchIncrements?: Record<string, number>;
     basePrices: {
       count: number;
       price: number;

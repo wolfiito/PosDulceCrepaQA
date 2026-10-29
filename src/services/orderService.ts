@@ -1,6 +1,7 @@
 // src/services/orderService.ts
 import { db, collection, serverTimestamp, runTransaction, doc, writeBatch, increment } from '../firebase';
 import { printService } from './printService';
+import { logger } from './loggerService';
 import type { TicketItem } from '../types/menu';
 import type { PaymentDetails, OrderMode, KitchenStatus } from '../types/order';
 import type { DocumentReference } from 'firebase/firestore'; 
@@ -41,23 +42,25 @@ export const orderService = {
     const initialKitchenStatus: KitchenStatus = 'queued';
     let finalOrderNumber = 0;
 
+    // 1. HARDENING: Si es una mesa y no hay nombre, el nombre ES la mesa
+    const isMesa = mode.startsWith('Mesa ');
+    const finalCustomerName = (isMesa && !customerName) ? mode : (customerName || 'Cliente Anónimo');
+
     try {
       await runTransaction(db, async (transaction) => {
         const counterRef = doc(db,"branches", branchId, "counters", "orders");
 
+        // --- CÁLCULO DE INVENTARIO ---
         const modifiersToDeduct = new Map<string, number>();
         const modIdsToRead = new Set<string>();
 
         items.forEach(item => {
-            // 1. Deducir el producto base si existe en inventario
             const baseId = item.details?.itemId || item.productId;
             if (baseId) {
                 const currentQty = modifiersToDeduct.get(baseId) || 0;
                 modifiersToDeduct.set(baseId, currentQty + (item.quantity || 1));
                 modIdsToRead.add(baseId);
             }
-
-            // 2. Deducir los modificadores
             if (item.details?.selectedModifiers) {
                 item.details.selectedModifiers.forEach(mod => {
                     const currentQty = modifiersToDeduct.get(mod.id) || 0;
@@ -70,51 +73,39 @@ export const orderService = {
         const uniqueModIds = Array.from(modIdsToRead);
         const invRefs = uniqueModIds.map(id => doc(db, "branches", branchId, "inventory", id));
 
-        // Descargamos como invSnaps
         const [counterSnap, ...invSnaps] = await Promise.all([
             transaction.get(counterRef),
             ...invRefs.map(ref => transaction.get(ref))
         ]);
 
         const updates: StockUpdate[] = [];
-        
-        // 5. Procesar los resultados del inventario
         invSnaps.forEach((snap, index) => {
             const modId = uniqueModIds[index];
             const qtyToDeduct = modifiersToDeduct.get(modId) || 0;
-
             if (snap.exists()) {
                 const data = snap.data();
-                const isTracked = data.trackStock !== false;
-                
-                if (isTracked) {
+                if (data.trackStock === true) {
                     const currentStock = Number(data.currentStock) || 0;
                     const newStock = currentStock - qtyToDeduct;
-
-                    // HARDENING: Evitar stock negativo si está activado el rastreo
                     if (newStock < 0) {
-                        throw new Error(`Stock insuficiente: ${data.name || 'Ingrediente'} (Disponible: ${currentStock}, Necesario: ${qtyToDeduct})`);
+                        throw new Error(`Stock insuficiente: ${data.name || 'Ingrediente'} (Disp: ${currentStock}, Req: ${qtyToDeduct})`);
                     }
-
                     updates.push({ ref: snap.ref, newStock });
                 }
-            } else {
-                // Si el documento de inventario local no existe, 
-                // simplemente no lo descontamos (se asume que no se rastrea en esta sucursal)
-                console.log(`Inventory doc missing for ${modId}, skipping deduction.`);
             }
         });
 
+        // --- CREAR NUEVA ORDEN (SIEMPRE NUEVA PARA EL KDS) ---
         let currentCount = 0;
         if (counterSnap.exists()) {
             currentCount = counterSnap.data().count || 0;
         }
         finalOrderNumber = currentCount + 1;
+        transaction.set(counterRef, { count: finalOrderNumber }, { merge: true });
 
         const cleanItems = cleanUndefined(items);
         const cleanPayment = payment ? cleanUndefined(payment) : undefined;
         
-        // F. Preparar Objeto
         const firebaseOrderData: any = {
             branchId: branchId || 'sin-sucursal',
             items: cleanItems,
@@ -123,7 +114,7 @@ export const orderService = {
             status: initialStatus,
             kitchenStatus: initialKitchenStatus,
             orderNumber: finalOrderNumber,
-            customerName: customerName || 'Cliente Anónimo',
+            customerName: finalCustomerName,
             createdAt: serverTimestamp(),
             cashier: cashierName || 'Cajero',
         };
@@ -133,14 +124,12 @@ export const orderService = {
         
         const newOrderRef = doc(collection(db, "orders")); 
         transaction.set(newOrderRef, firebaseOrderData);
-        transaction.set(counterRef, { count: finalOrderNumber }, { merge: true });
         
         updates.forEach(update => {
             transaction.update(update.ref, { currentStock: update.newStock });
         });
       });
 
-      // Fuera de la transacción para no bloquear la BD si la impresora falla
       if (shouldPrint) {
         printService.printReceipt({
             branchId,
@@ -150,7 +139,7 @@ export const orderService = {
             status: initialStatus,
             kitchenStatus: initialKitchenStatus,
             orderNumber: finalOrderNumber,
-            customerName,
+            customerName: finalCustomerName,
             createdAt: new Date(),
             payment,
             cashier: cashierName
@@ -160,7 +149,7 @@ export const orderService = {
     return finalOrderNumber;
 
     } catch (error) {
-      console.error("Error crítico al crear orden:", error);
+      logger.error("Error crítico al crear orden", error, { context: 'orderService.createOrder' });
       throw error;
     }
   },
@@ -225,7 +214,7 @@ export const orderService = {
         await batch.commit();
         return true;
     } catch (error) {
-        console.error("Error al cancelar orden:", error);
+        logger.error("Error al cancelar orden", error, { context: 'orderService.cancelOrder' });
         throw error;
     }
   },
@@ -267,7 +256,7 @@ export const orderService = {
         await batch.commit();
         return true;
     } catch (error) {
-        console.error("Error al eliminar item de orden:", error);
+        logger.error("Error al eliminar item de orden", error, { context: 'orderService.removeItemFromOrder' });
         throw error;
     }
   }
