@@ -108,12 +108,12 @@ export const reportService = {
                 // Tipado manual simple para el acumulador
                 if (existing) {
                     existing.quantity += qty; // Sumamos cantidad correcta
-                    existing.total += item.finalPrice;
+                    existing.total += item.finalPrice * qty;
                 } else {
-                    productMap.set(fullName, { 
-                        name: fullName, 
-                        quantity: qty, 
-                        total: item.finalPrice,
+                    productMap.set(fullName, {
+                        name: fullName,
+                        quantity: qty,
+                        total: item.finalPrice * qty,
                         productId: item.productId 
                     } as any);
                 }

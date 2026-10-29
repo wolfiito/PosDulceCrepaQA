@@ -67,7 +67,7 @@ export const OrderTicketItem: React.FC<Props> = ({ item, orderId, isEditable, on
                 )}
             </span>
             <span className="font-mono font-bold text-gray-400 text-xs ml-2">
-                ${item.finalPrice.toFixed(2)}
+                ${(item.finalPrice * (item.quantity || 1)).toFixed(2)}
             </span>
         </div>
       </motion.div>

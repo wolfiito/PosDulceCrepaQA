@@ -138,7 +138,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                                             </span>
                                         )}
                                     </span>
-                                    <span className="font-mono font-bold">${item.finalPrice.toFixed(2)}</span>
+                                    <span className="font-mono font-bold">${(item.finalPrice * (item.quantity || 1)).toFixed(2)}</span>
                                 </div>
                             ));
                         })()}

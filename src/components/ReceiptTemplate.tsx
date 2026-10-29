@@ -48,10 +48,10 @@ export const ReceiptTemplate: React.FC<Props> = ({ order }) => {
           <div key={`${item.id}-${index}`} className="flex flex-col">
             <div className="flex justify-between items-start font-bold">
               <span className="w-[75%] leading-tight">
-                1 {item.baseName}
+                {item.quantity || 1} {item.baseName}
                 {item.details?.variantName && ` (${item.details.variantName})`}
               </span>
-              <span>${item.finalPrice.toFixed(2)}</span>
+              <span>${(item.finalPrice * (item.quantity || 1)).toFixed(2)}</span>
             </div>
             
             {item.details?.selectedModifiers && item.details.selectedModifiers.length > 0 && (

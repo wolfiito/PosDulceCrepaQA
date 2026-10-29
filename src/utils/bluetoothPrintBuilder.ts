@@ -64,15 +64,16 @@ export const buildReceiptJSON = (order: Order) => {
     add({ type: 0, content: "DULCE CREPA", bold: 1, align: 1, format: 2 }); 
     add({ type: 0, content: "Sucursal: Centro", bold: 0, align: 0, format: 0 });
     add({ type: 0, content: `Fecha: ${date}`, bold: 0, align: 0, format: 0 });
-    add({ type: 0, content: `Hora: ${time}`, bolde: 0, align: 0, format: 0 });
+    add({ type: 0, content: `Hora: ${time}`, bold: 0, align: 0, format: 0 });
     add({ type: 0, content: `Atendió: ${cashierName}`, bold: 0, align: 0, format: 0 });
     add({ type: 0, content: "--------------------------------", bold: 1, align: 1, format: 0 });
     add({ type: 0, content: "\n", bold: 0, align: 0, format: 0 });
     // --- 2. PRODUCTOS ---
     order.items.forEach(item => {
       const variant = item.details?.variantName ? `(${item.details.variantName})` : '';
-      const nameFull = `${item.baseName} ${variant}`;
-      const priceStr = `$${item.finalPrice.toFixed(2)}`;
+      const qty = item.quantity || 1;
+      const nameFull = `${qty} ${item.baseName} ${variant}`;
+      const priceStr = `$${(item.finalPrice * qty).toFixed(2)}`;
   
       // Nombre y Precio en la misma línea (Negritas)
       add({ 
@@ -189,7 +190,8 @@ export const buildReceiptString = (order: Order) => {
 
   order.items.forEach(item => {
     const variant = item.details?.variantName ? `(${item.details.variantName})` : '';
-    str += `<100>${formatLine(`${item.baseName} ${variant}`, `$${item.finalPrice.toFixed(2)}`)}\n`;
+    const qty = item.quantity || 1;
+    str += `<100>${formatLine(`${qty} ${item.baseName} ${variant}`, `$${(item.finalPrice * qty).toFixed(2)}`)}\n`;
     if (item.details?.selectedModifiers) {
         item.details.selectedModifiers.forEach(mod => {
             str += `<100>  + ${mod.name}\n`;

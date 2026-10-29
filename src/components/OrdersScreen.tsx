@@ -127,9 +127,15 @@ export const OrdersScreen: React.FC = () => {
         }
 
         const remainingItems = [...currentItems];
-        remainingItems.splice(itemIndex, 1);
+        const currentQty = remainingItems[itemIndex].quantity || 1;
+        if (currentQty > 1) {
+            // Si la línea trae varias unidades, solo restamos una
+            remainingItems[itemIndex] = { ...remainingItems[itemIndex], quantity: currentQty - 1 };
+        } else {
+            remainingItems.splice(itemIndex, 1);
+        }
 
-        const newTotal = remainingItems.reduce((acc, i) => acc + (i.finalPrice || 0), 0);
+        const newTotal = remainingItems.reduce((acc, i) => acc + (i.finalPrice || 0) * (i.quantity || 1), 0);
         
         // IMPORTANTE: Al eliminar desde la UI (swipe), eliminamos de a 1 unidad.
         // Creamos una copia del item con quantity = 1 para que el servicio restaure solo eso.
