@@ -1,13 +1,27 @@
 // src/components/admin/ProductsManager.tsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { collection, getDocs, doc, writeBatch, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, deleteDoc, writeBatch, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { toast } from 'sonner';
-import type { MenuItem, MenuGroup, ModifierGroup, VariantPriceItem, FixedPriceItem } from '../../types/menu';
+import type { MenuItem, MenuGroup, ModifierGroup, VariantPriceItem, FixedPriceItem, PriceRule } from '../../types/menu';
 import { isExclusiveGroup } from '../../constants/menuConstants';
+import { getRuleBasePrice, getBranchAdjustedRule } from '../../utils/pricing';
 
 // Tipos auxiliares para el panel
 interface Branch { id: string; name: string; }
+
+const ROOT_ID = 'root';
+
+// Los que se arman por ingredientes (crepas, waffles, hot cakes) son categorías con regla
+// de precio en menu_groups; aquí se muestran y editan junto a los productos.
+type ListEntry = { kind: 'item'; item: MenuItem } | { kind: 'build'; group: MenuGroup };
+
+const PREVIEW_COUNTS = [1, 2, 3, 4];
+
+const ruleHasBranchPrices = (rule: PriceRule, branchId: string) =>
+    rule.branchInitialPrices?.[branchId] !== undefined ||
+    rule.branchIncrements?.[branchId] !== undefined ||
+    (rule.basePrices || []).some(bp => bp.branchPrices?.[branchId] !== undefined);
 
 // Lo que se edita en el formulario: el producto y las carpetas donde aparece
 interface Draft {
@@ -52,6 +66,8 @@ export const ProductsManager: React.FC = () => {
     const [branches, setBranches] = useState<Branch[]>([]);
     const [modGroups, setModGroups] = useState<ModifierGroup[]>([]);
     const [folders, setFolders] = useState<MenuGroup[]>([]);
+    const [buildGroups, setBuildGroups] = useState<MenuGroup[]>([]);
+    const [rules, setRules] = useState<PriceRule[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Filtros del listado
@@ -62,6 +78,7 @@ export const ProductsManager: React.FC = () => {
     const [draft, setDraft] = useState<Draft | null>(null);
     const [openBranchPrices, setOpenBranchPrices] = useState<number | null>(null);
     const [newList, setNewList] = useState<NewListForm | null>(null);
+    const [buildDraft, setBuildDraft] = useState<MenuGroup | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
@@ -71,20 +88,23 @@ export const ProductsManager: React.FC = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [itemsSnap, branchesSnap, modGroupsSnap, groupsSnap] = await Promise.all([
+            const [itemsSnap, branchesSnap, modGroupsSnap, groupsSnap, rulesSnap] = await Promise.all([
                 getDocs(collection(db, 'menu_items')),
                 getDocs(collection(db, 'branches')),
                 getDocs(collection(db, 'modifier_groups')),
-                getDocs(collection(db, 'menu_groups'))
+                getDocs(collection(db, 'menu_groups')),
+                getDocs(collection(db, 'price_rules'))
             ]);
 
             setItems(itemsSnap.docs.map(d => d.data() as MenuItem));
             setBranches(branchesSnap.docs.map(d => ({ id: d.id, name: d.data().name })));
             setModGroups(modGroupsSnap.docs.map(d => ({ id: d.id, ...d.data() } as ModifierGroup)));
+            setRules(rulesSnap.docs.map(d => ({ id: d.id, ...d.data() } as PriceRule)));
 
-            // Solo las carpetas que muestran productos (las de "armar" usan reglas de precio)
+            // Carpetas que muestran productos; las de "armar" usan reglas de precio y se listan aparte
             const allGroups = groupsSnap.docs.map(d => ({ id: d.id, ...d.data() } as MenuGroup));
-            setFolders(allGroups.filter(g => g.id !== 'root' && !g.rules_ref));
+            setFolders(allGroups.filter(g => g.id !== ROOT_ID && !g.rules_ref));
+            setBuildGroups(allGroups.filter(g => g.id !== ROOT_ID && g.rules_ref));
         } catch (error) {
             toast.error("Error al cargar los datos.");
         } finally {
@@ -108,18 +128,33 @@ export const ProductsManager: React.FC = () => {
         return map;
     }, [folders]);
 
-    const filteredItems = useMemo(() => {
+    const filteredEntries = useMemo((): ListEntry[] => {
         const term = search.trim().toLowerCase();
-        return items
-            .filter(item => !term || item.name.toLowerCase().includes(term))
+        const matches = (name: string) => !term || name.toLowerCase().includes(term);
+        const itemEntries: ListEntry[] = items
+            .filter(item => matches(item.name))
             .filter(item => {
                 const itemFolders = foldersByItem.get(item.id) || [];
                 if (folderFilter === 'all') return true;
                 if (folderFilter === 'none') return itemFolders.length === 0;
                 return itemFolders.some(f => f.id === folderFilter);
             })
-            .sort((a, b) => a.name.localeCompare(b.name));
-    }, [items, search, folderFilter, foldersByItem]);
+            .map(item => ({ kind: 'item', item }));
+        const buildEntries: ListEntry[] = buildGroups
+            .filter(group => matches(group.name))
+            .filter(group => folderFilter === 'all' || group.parent === folderFilter)
+            .map(group => ({ kind: 'build', group }));
+        const entryName = (e: ListEntry) => (e.kind === 'item' ? e.item.name : e.group.name);
+        return [...itemEntries, ...buildEntries].sort((a, b) => entryName(a).localeCompare(entryName(b)));
+    }, [items, buildGroups, search, folderFilter, foldersByItem]);
+
+    const ruleById = (id?: string) => rules.find(r => r.id === id);
+    const listName = (id?: string) => modGroups.find(g => g.id === id)?.name || id || '—';
+    const parentName = (parentId?: string) => {
+        if (!parentId || parentId === ROOT_ID) return 'Menú principal';
+        const folder = folders.find(f => f.id === parentId);
+        return folder ? folderName(folder) : '⚠️ Categoría inexistente';
+    };
 
     const orphanCount = useMemo(
         () => items.filter(item => !(foldersByItem.get(item.id)?.length)).length,
@@ -330,6 +365,220 @@ export const ProductsManager: React.FC = () => {
         } catch (error) {
             toast.error("Error al eliminar");
         }
+    };
+
+    // --- SE ARMA POR INGREDIENTES (categoría con regla de precio) ---
+    const openNewBuild = () => {
+        const parent = folderFilter !== 'all' && folderFilter !== 'none' ? folderFilter : ROOT_ID;
+        setBuildDraft({ id: '', name: '', level: 1, parent, rules_ref: rules[0]?.id || '', extra_groups: [], topping_groups: [] });
+    };
+
+    const updateBuild = (changes: Partial<MenuGroup>) => {
+        if (!buildDraft) return;
+        setBuildDraft({ ...buildDraft, ...changes });
+    };
+
+    const toggleBuildList = (field: 'extra_groups' | 'topping_groups', listId: string) => {
+        if (!buildDraft) return;
+        const current = buildDraft[field] || [];
+        updateBuild({ [field]: current.includes(listId) ? current.filter(id => id !== listId) : [...current, listId] });
+    };
+
+    const handleSaveBuild = async () => {
+        if (!buildDraft) return;
+        const name = buildDraft.name.trim();
+        if (!name) return toast.error("El nombre es obligatorio");
+        if (!buildDraft.rules_ref) return toast.error("Elige la regla de precio");
+        if (!buildDraft.base_group) return toast.error("Elige la lista de ingredientes que cuentan para el precio");
+
+        const parentId = buildDraft.parent || ROOT_ID;
+        const parent = folders.find(f => f.id === parentId);
+        const level = parentId === ROOT_ID ? 1 : (parent?.level ?? 1) + 1;
+
+        setIsSaving(true);
+        try {
+            const id = buildDraft.id || `group_${Date.now()}`;
+            // Mismo formato que guarda la pestaña Categorías; clone() quita los undefined
+            const toSave: MenuGroup = clone({
+                ...buildDraft, id, name, level, parent: parentId,
+                extra_groups: buildDraft.extra_groups || [],
+                topping_groups: buildDraft.topping_groups || []
+            });
+            delete toSave.items_ref;
+            await setDoc(doc(db, 'menu_groups', id), toSave);
+            toast.success(`"${name}" guardado`);
+            setBuildDraft(null);
+            fetchData();
+        } catch (error) {
+            toast.error("Error al guardar");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleDeleteBuild = async (group: MenuGroup) => {
+        if (!window.confirm(`¿Seguro que deseas eliminar "${group.name}"? Dejará de aparecer en el POS.`)) return;
+        try {
+            await deleteDoc(doc(db, 'menu_groups', group.id));
+            toast.success("Eliminado");
+            setBuildDraft(null);
+            fetchData();
+        } catch (error) {
+            toast.error("Error al eliminar");
+        }
+    };
+
+    const renderBuildModal = () => {
+        if (!buildDraft) return null;
+        const rule = ruleById(buildDraft.rules_ref);
+        const sharedWith = buildGroups.filter(g => g.id !== buildDraft.id && g.rules_ref === buildDraft.rules_ref).map(g => g.name);
+        const branchesWithPrices = rule ? branches.filter(b => ruleHasBranchPrices(rule, b.id)) : [];
+        const priceColumns = [{ id: '', name: 'General' }, ...branchesWithPrices];
+        const otherLists = modGroups.filter(l => l.id !== buildDraft.base_group);
+
+        return (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4">
+                <div className="bg-base-100 w-full sm:max-w-2xl h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in-up">
+
+                    {/* Header */}
+                    <div className="p-4 border-b border-base-200 bg-base-200/50 flex items-center justify-between gap-2">
+                        <h2 className="text-xl font-black text-primary">
+                            {buildDraft.id ? '✏️ Editar' : '✨ Nuevo'} · 🛠️ Se arma
+                        </h2>
+                        <button onClick={() => setBuildDraft(null)} className="btn btn-circle btn-ghost btn-sm">✕</button>
+                    </div>
+
+                    <div className="p-4 overflow-y-auto flex-1 space-y-6">
+                        <p className="text-xs opacity-70">
+                            El cajero elige ingredientes y el precio sale de la regla, según cuántos ingredientes base lleve.
+                        </p>
+
+                        {/* 1. NOMBRE Y DÓNDE APARECE */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="form-control">
+                                <label className="label"><span className="label-text font-bold">Nombre</span></label>
+                                <input type="text" className="input input-bordered w-full" value={buildDraft.name}
+                                    onChange={e => updateBuild({ name: e.target.value })} placeholder="Ej. Hot Cakes" />
+                            </div>
+                            <div className="form-control">
+                                <label className="label"><span className="label-text font-bold">¿Dónde aparece?</span></label>
+                                <select className="select select-bordered w-full" value={buildDraft.parent || ROOT_ID}
+                                    onChange={e => updateBuild({ parent: e.target.value })}>
+                                    <option value={ROOT_ID}>Menú principal</option>
+                                    {folders.map(f => <option key={f.id} value={f.id}>{folderName(f)}</option>)}
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* 2. PRECIO */}
+                        <section className="space-y-2">
+                            <h3 className="font-bold">¿Cómo se cobra?</h3>
+                            <select className="select select-bordered select-sm w-full" value={buildDraft.rules_ref || ''}
+                                onChange={e => updateBuild({ rules_ref: e.target.value })}>
+                                <option value="">Selecciona una regla de precio...</option>
+                                {rules.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                            </select>
+                            {rules.length === 0 && <p className="text-xs text-warning">Primero crea una regla en la pestaña "Reglas".</p>}
+
+                            {rule && (
+                                <div className="bg-base-200/50 rounded-xl p-3 border border-base-300 space-y-2">
+                                    <div className="overflow-x-auto">
+                                        <table className="table table-xs">
+                                            <thead>
+                                                <tr>
+                                                    <th>Ingredientes base</th>
+                                                    {priceColumns.map(c => <th key={c.id} className="text-right">{c.name}</th>)}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {PREVIEW_COUNTS.map(count => (
+                                                    <tr key={count}>
+                                                        <td>{count}</td>
+                                                        {priceColumns.map(c => {
+                                                            // Mismo cálculo que el POS
+                                                            const result = getRuleBasePrice(getBranchAdjustedRule(rule, c.id || null), count);
+                                                            return (
+                                                                <td key={c.id} className="text-right font-bold">
+                                                                    {result.error ? <span className="text-error font-normal">{result.error}</span> : `$${result.price}`}
+                                                                </td>
+                                                            );
+                                                        })}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <p className="text-[11px] opacity-60">
+                                        Los precios se cambian en la pestaña "Reglas".
+                                        {sharedWith.length > 0 && <> Esta regla también la usa <b>{sharedWith.join(', ')}</b>: si la cambias, cambia para todos.</>}
+                                    </p>
+                                </div>
+                            )}
+                        </section>
+
+                        {/* 3. INGREDIENTES */}
+                        <section className="space-y-4">
+                            <div className="form-control">
+                                <label className="label"><span className="label-text font-bold">Ingredientes que cuentan para el precio</span></label>
+                                <select className="select select-bordered select-sm w-full" value={buildDraft.base_group || ''}
+                                    onChange={e => updateBuild({
+                                        base_group: e.target.value || undefined,
+                                        // Una lista no puede ser base y extra a la vez
+                                        extra_groups: (buildDraft.extra_groups || []).filter(id => id !== e.target.value),
+                                        topping_groups: (buildDraft.topping_groups || []).filter(id => id !== e.target.value)
+                                    })}>
+                                    <option value="">Selecciona una lista...</option>
+                                    {modGroups.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                                </select>
+                            </div>
+
+                            {(['extra_groups', 'topping_groups'] as const).map(field => (
+                                <div key={field} className="space-y-2">
+                                    <h4 className="font-bold text-sm">
+                                        {field === 'extra_groups' ? 'Extras (se cobran aparte)' : 'Toppings / cortesías (paso final)'}
+                                    </h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {otherLists.map(l => {
+                                            const isSelected = buildDraft[field]?.includes(l.id);
+                                            return (
+                                                <button key={l.id} onClick={() => toggleBuildList(field, l.id)}
+                                                    className={`btn btn-xs ${isSelected ? 'btn-primary' : 'btn-outline border-base-300'}`}>
+                                                    {isSelected ? '✓ ' : '+ '}{l.name}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+                            <p className="text-[11px] opacity-60">Los ingredientes de cada lista se agregan o quitan en la pestaña "Opciones".</p>
+                        </section>
+
+                        {/* 4. VISTA PREVIA */}
+                        {buildDraft.base_group && (
+                            <section className="bg-primary/5 border border-primary/20 rounded-xl p-3 text-sm">
+                                <span className="font-bold">Así lo arma el cajero: </span>
+                                {[
+                                    listName(buildDraft.base_group),
+                                    ...(buildDraft.extra_groups?.length ? ['Extras'] : []),
+                                    ...(buildDraft.topping_groups?.length ? ['Toppings'] : [])
+                                ].join(' → ')}
+                            </section>
+                        )}
+                    </div>
+
+                    {/* Footer / Botones */}
+                    <div className="p-3 border-t border-base-200 bg-base-200/50 flex gap-2">
+                        {buildDraft.id && (
+                            <button onClick={() => handleDeleteBuild(buildDraft)} className="btn btn-ghost text-error">🗑️</button>
+                        )}
+                        <button onClick={() => setBuildDraft(null)} className="btn btn-ghost flex-1">Cancelar</button>
+                        <button onClick={handleSaveBuild} disabled={isSaving} className="btn btn-primary flex-[2] shadow-lg shadow-primary/30">
+                            {isSaving ? 'Guardando...' : '💾 Guardar'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
     };
 
     // --- RENDERIZADO DEL FORMULARIO ---
@@ -572,9 +821,12 @@ export const ProductsManager: React.FC = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-base-200/50 p-4 rounded-xl border border-base-300">
               <div>
                   <h3 className="text-xl font-bold">Productos</h3>
-                  <p className="text-xs opacity-70">Precios, categoría y disponibilidad por sucursal.</p>
+                  <p className="text-xs opacity-70">Precios, categoría y disponibilidad por sucursal. Incluye lo que se arma por ingredientes (crepas, waffles, hot cakes).</p>
               </div>
-              <button onClick={openNewItem} className="btn btn-primary btn-sm w-full sm:w-auto">+ Nuevo Producto</button>
+              <div className="flex gap-2 w-full sm:w-auto">
+                  <button onClick={openNewBuild} className="btn btn-outline btn-sm flex-1 sm:flex-none">+ 🛠️ Se arma</button>
+                  <button onClick={openNewItem} className="btn btn-primary btn-sm flex-1 sm:flex-none">+ Nuevo Producto</button>
+              </div>
           </div>
 
           {/* Buscador y filtro */}
@@ -596,7 +848,31 @@ export const ProductsManager: React.FC = () => {
 
           {/* Listado Responsive */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              {filteredItems.map(item => {
+              {filteredEntries.map(entry => {
+                  if (entry.kind === 'build') {
+                      const group = entry.group;
+                      const rule = ruleById(group.rules_ref);
+                      const fromPrice = getRuleBasePrice(rule, 1);
+                      return (
+                          <button key={`build_${group.id}`} onClick={() => setBuildDraft(clone(group))}
+                              className="card bg-base-100 border border-base-300 shadow-sm hover:shadow-md hover:border-primary/40 transition-all text-left">
+                              <div className="card-body p-4 gap-1">
+                                  <div className="flex justify-between items-start gap-2">
+                                      <h4 className="font-bold text-base leading-tight">{group.name}</h4>
+                                      <span className="text-lg font-black text-primary whitespace-nowrap">
+                                          {fromPrice.error ? <span className="text-xs text-error">{fromPrice.error}</span> : <><span className="text-xs font-normal opacity-60">desde </span>${fromPrice.price}</>}
+                                      </span>
+                                  </div>
+                                  <p className="text-xs opacity-60 truncate">{parentName(group.parent)}</p>
+                                  <div className="flex gap-1 mt-1 flex-wrap">
+                                      <span className="badge badge-xs badge-secondary">🛠️ Se arma</span>
+                                      <span className="badge badge-xs badge-ghost truncate max-w-full">{rule?.name || 'Sin regla'}</span>
+                                  </div>
+                              </div>
+                          </button>
+                      );
+                  }
+                  const item = entry.item;
                   const itemFolders = foldersByItem.get(item.id) || [];
                   const prices = getPriceRows(item).map(r => r.price || 0);
                   const minPrice = Math.min(...prices);
@@ -635,12 +911,13 @@ export const ProductsManager: React.FC = () => {
                       </button>
                   );
               })}
-              {filteredItems.length === 0 && (
+              {filteredEntries.length === 0 && (
                   <p className="col-span-full text-center opacity-60 py-10">No hay productos con ese filtro.</p>
               )}
           </div>
 
           {renderEditModal()}
+          {renderBuildModal()}
       </div>
   );
 };
