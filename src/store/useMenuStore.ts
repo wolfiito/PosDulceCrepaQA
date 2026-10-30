@@ -2,13 +2,14 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { db, collection, onSnapshot } from '../firebase';
-import type { MenuGroup, MenuItem, Modifier, PriceRule } from '../types/menu';
+import type { MenuGroup, MenuItem, Modifier, ModifierGroup, PriceRule } from '../types/menu';
 
 interface MenuState {
   groups: MenuGroup[];
   items: MenuItem[];
   modifiers: Modifier[];
   rules: PriceRule[];
+  modifierGroups: ModifierGroup[];
   
   isLoading: boolean;
   error: string | null;
@@ -23,6 +24,7 @@ export const useMenuStore = create<MenuState>()(
       items: [],
       modifiers: [],
       rules: [],
+      modifierGroups: [],
       isLoading: false,
       error: null,
 
@@ -112,12 +114,25 @@ export const useMenuStore = create<MenuState>()(
         }
     );
 
+    // 5. Escuchar Listas de Opciones (solo para saber cuáles son "elige una").
+    // No bloquea la carga: si falla, isExclusiveGroup usa la lista fija.
+    const unsubModifierGroups = onSnapshot(
+        collection(db, "modifier_groups"),
+        (snap) => {
+            set({ modifierGroups: snap.docs.map(d => ({ id: d.id, ...d.data() } as ModifierGroup)) });
+        },
+        (err) => {
+            console.error("Error modifier groups:", err);
+        }
+    );
+
         // Retornamos una función que limpia todo cuando se cierra la app (cleanup)
         return () => {
             unsubGroups();
             unsubItems();
             unsubModifiers();
             unsubRules();
+            unsubModifierGroups();
         };
       }
     }),
@@ -128,7 +143,8 @@ export const useMenuStore = create<MenuState>()(
         groups: state.groups, 
         items: state.items, 
         modifiers: state.modifiers, 
-        rules: state.rules
+        rules: state.rules,
+        modifierGroups: state.modifierGroups
       }),
     }
   )

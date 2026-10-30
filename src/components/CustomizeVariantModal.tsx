@@ -2,10 +2,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import Modal from 'react-modal';
 import type { VariantPriceItem, FixedPriceItem, Modifier, TicketItem, MenuItem } from '../types/menu'; 
-import { EXCLUSIVE_GROUPS } from '../constants/menuConstants';
+import { isExclusiveGroup } from '../constants/menuConstants';
 import { getBranchPrice } from '../utils/pricing';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { useAuthStore } from '../store/useAuthStore';
+import { useMenuStore } from '../store/useMenuStore';
 
 Modal.setAppElement('#root');
 
@@ -36,6 +37,7 @@ export function CustomizeVariantModal({ isOpen, onClose, item, allModifiers, onA
     const [selectedModifiers, setSelectedModifiers] = useState<Map<string, Modifier>>(new Map());
     const { stockData } = useInventoryStore();
     const { activeBranchId } = useAuthStore();
+    const { modifierGroups } = useMenuStore();
 
 
     useEffect(() => {
@@ -102,7 +104,7 @@ export function CustomizeVariantModal({ isOpen, onClose, item, allModifiers, onA
                 return true;
             });
             
-            const isExclusive = EXCLUSIVE_GROUPS.includes(groupId) || groupId === 'tipo_leche' || groupId === 'bubble_estilo';
+            const isExclusive = isExclusiveGroup(groupId, modifierGroups);
             
             // Renderizamos la capa de opciones si tiene valores, O bien, SI ES OBLIGATORIA.
             if (options.length > 0 || isExclusive) {
@@ -118,7 +120,7 @@ export function CustomizeVariantModal({ isOpen, onClose, item, allModifiers, onA
         });
 
         return stepList;
-    }, [item, allModifiers, stockData]);
+    }, [item, allModifiers, stockData, modifierGroups]);
 
     const currentStep = steps[step];
     const isLastStep = step === steps.length - 1;

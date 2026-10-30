@@ -52,16 +52,6 @@ export const calculateCustomItemPrice = (
     }
     basePrice = group.price || 0;
   }
-  else if (group.id.includes('licuados')) {
-    const requiredCount = group.id.includes('sencillo') ? 1 : 2;
-    ruleDescription = `${baseIngredientCount}/${requiredCount} Ingredientes`;
-    if (baseIngredientCount !== requiredCount) {
-      isValid = false;
-      ruleDescription = `Elija ${requiredCount} ingrediente(s)`;
-    }
-    const matchedRule = priceRule?.basePrices.find(r => r.count === requiredCount);
-    basePrice = matchedRule?.price || 0;
-  }
   else if (group.base_group === MODIFIER_GROUPS.CREPA_DULCE_BASE || group.base_group === MODIFIER_GROUPS.CREPA_SALADA_BASE) {
     ruleDescription = `${baseIngredientCount} Ingredientes`;
     if (baseIngredientCount === 0) {

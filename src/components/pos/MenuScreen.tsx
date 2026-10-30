@@ -8,11 +8,11 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useInventoryStore } from '../../store/useInventoryStore';
 import { ProductCard } from '../ProductCard';
 import { IconBack } from '../Icons';
-import { EXCLUSIVE_GROUPS } from '../../constants/menuConstants';
+import { isExclusiveGroup } from '../../constants/menuConstants';
 import type { MenuItem, MenuGroup } from '../../types/menu';
 
 export const MenuScreen: React.FC = () => {
-    const { groups, items, modifiers } = useMenuStore();
+    const { groups, items, modifiers, modifierGroups } = useMenuStore();
     const { currentGroup, navigateToGroup, openCustomModal, openVariantModal } = useUIStore();
     const { addItem } = useTicketStore();
     
@@ -57,7 +57,7 @@ export const MenuScreen: React.FC = () => {
         const menuItem = item as MenuItem;
         if (menuItem.modifierGroups && menuItem.modifierGroups.length > 0) {
             for (const groupId of menuItem.modifierGroups) {
-                const isExclusive = EXCLUSIVE_GROUPS.includes(groupId);
+                const isExclusive = isExclusiveGroup(groupId, modifierGroups);
                 if (isExclusive && !hasOptionsInStock(groupId)) {
                     return true;
                 }

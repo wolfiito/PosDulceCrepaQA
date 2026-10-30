@@ -71,6 +71,9 @@ export interface FixedPriceItem {
   export interface ModifierGroup {
     id: string;
     name: string;
+    // true = el cliente elige solo una opción y es obligatoria.
+    // Sin definir = se usa la lista fija de menuConstants (comportamiento anterior).
+    isExclusive?: boolean;
   }
   export interface TicketItem {
     id: string; 

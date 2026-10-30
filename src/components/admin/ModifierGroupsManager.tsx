@@ -4,6 +4,7 @@ import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore'
 import { db } from '../../firebase';
 import { toast } from 'sonner';
 import type { ModifierGroup } from '../../types/menu';
+import { isExclusiveGroup } from '../../constants/menuConstants';
 
 export const ModifierGroupsManager: React.FC = () => {
     const [groups, setGroups] = useState<ModifierGroup[]>([]);
@@ -28,7 +29,9 @@ export const ModifierGroupsManager: React.FC = () => {
         if (!editingGroup?.name) return toast.error("El nombre es obligatorio");
         try {
             const id = editingGroup.id || `mg_${Date.now()}`;
-            await setDoc(doc(db, 'modifier_groups', id), { ...editingGroup, id });
+            // Guardamos isExclusive explícito para que ya no dependa de la lista fija
+            const isExclusive = isExclusiveGroup(id, [editingGroup]);
+            await setDoc(doc(db, 'modifier_groups', id), { ...editingGroup, id, isExclusive });
             toast.success("Lista guardada correctamente");
             setEditingGroup(null);
             fetchData();
@@ -70,7 +73,12 @@ export const ModifierGroupsManager: React.FC = () => {
                 {groups.map(g => (
                     <div key={g.id} className="card bg-base-100 border border-base-300 shadow-sm hover:border-info/40 transition-all">
                         <div className="card-body p-4 flex-row justify-between items-center">
-                            <h4 className="font-bold text-sm">{g.name}</h4>
+                            <div>
+                                <h4 className="font-bold text-sm">{g.name}</h4>
+                                <span className="text-[10px] opacity-60">
+                                    {isExclusiveGroup(g.id, groups) ? 'Elige una (obligatorio)' : 'Varias (opcional)'}
+                                </span>
+                            </div>
                             <div className="flex gap-1">
                                 <button onClick={() => setEditingGroup(g)} className="btn btn-square btn-ghost btn-sm text-info">✏️</button>
                                 <button onClick={() => handleDelete(g.id)} className="btn btn-square btn-ghost btn-sm text-error">🗑️</button>
@@ -100,6 +108,17 @@ export const ModifierGroupsManager: React.FC = () => {
                                     autoFocus
                                 />
                             </div>
+
+                            <label className="label cursor-pointer justify-start gap-3 mt-4">
+                                <input type="checkbox" className="checkbox checkbox-info"
+                                    checked={isExclusiveGroup(editingGroup.id, [editingGroup])}
+                                    onChange={e => setEditingGroup({...editingGroup, isExclusive: e.target.checked})}
+                                />
+                                <span className="label-text">
+                                    <span className="font-bold block">Elegir solo una (obligatorio)</span>
+                                    <span className="text-xs opacity-70">Ej. tipo de leche o sabor. Si no se marca, el cliente puede elegir varias o ninguna.</span>
+                                </span>
+                            </label>
                         </div>
 
                         <div className="p-4 border-t border-base-200 flex gap-2 bg-base-50">
