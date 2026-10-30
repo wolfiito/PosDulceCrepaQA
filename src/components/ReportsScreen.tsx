@@ -16,6 +16,7 @@ import { useAuthStore } from '../store/useAuthStore'; // <--- IMPORTANTE
 import type { DailyReportData } from '../types/report';
 import type { Order, PaymentMethod } from '../types/order';
 import { excelExportService } from '../services/excelExportService';
+import { ReturnInventoryModal, type PendingReturn } from './ReturnInventoryModal';
 import { Banknote, CreditCard, Smartphone, Shuffle, CircleDollarSign, Calculator, FileSpreadsheet, Receipt, Brain, ArrowRight, Search, TrendingDown, Landmark, Star, Lightbulb, Sparkles, Medal, ClipboardList, Trophy, ListChecks, X, Ban, Printer, Undo2, CircleQuestionMark } from 'lucide-react';
 
 // --- HELPER PARA FECHA LOCAL ---
@@ -137,6 +138,7 @@ export const ReportsScreen: React.FC = () => {
   const [data, setData] = useState<DailyReportData | null>(null);
   
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [pendingReturn, setPendingReturn] = useState<PendingReturn | null>(null);
 
   const [startDate, setStartDate] = useState(getLocalToday);
   const [endDate, setEndDate] = useState(getLocalToday);
@@ -160,30 +162,38 @@ export const ReportsScreen: React.FC = () => {
       }
   };
 
-  const handleRefund = async () => {
+  const handleRefund = () => {
       if (!selectedOrder || !selectedOrder.id) return;
-      // VALIDACIÓN IMPORTANTE: Pasamos branchId para restaurar stock en la sucursal correcta
-      if (!activeBranchId) {
-          toast.error("Error: No hay sucursal activa para procesar devolución");
+      // El inventario se mueve en la sucursal donde se vendió, no en la que está activa
+      const branchId = selectedOrder.branchId || activeBranchId;
+      if (!branchId) {
+          toast.error("Error: No se sabe la sucursal del ticket");
           return;
       }
-      
-      const confirm = window.confirm(`¿Estás seguro de DEVOLVER el ticket #${selectedOrder.orderNumber}? \n\nEsta acción cancelará la venta y restaurará el inventario.`);
-      if (!confirm) return;
-
-      try {
-          setLoading(true);
-          await orderService.cancelOrder(activeBranchId, selectedOrder.id, selectedOrder.items, currentUser?.name);
-          
-          toast.success("Ticket devuelto y stock restaurado");
-          setSelectedOrder(null); 
-          handleSearch(); 
-      } catch (error) {
-          console.error(error);
-          toast.error("Error al procesar la devolución");
-      } finally {
-          setLoading(false);
-      }
+      const order = selectedOrder;
+      setPendingReturn({
+          title: `Devolver ticket #${order.orderNumber}`,
+          items: order.items,
+          run: async (mode) => {
+              try {
+                  setLoading(true);
+                  await orderService.cancelOrder(branchId, order.id!, order.items, {
+                      user: currentUser?.name, mode, orderNumber: order.orderNumber
+                  });
+                  const hasUsage = order.items.some(i => Object.keys(i.supplyUsage || {}).length > 0);
+                  toast.success(!hasUsage ? "Ticket devuelto"
+                      : mode === 'waste' ? "Ticket devuelto; insumos registrados como merma"
+                      : "Ticket devuelto; insumos regresados al inventario");
+                  setSelectedOrder(null);
+                  handleSearch();
+              } catch (error) {
+                  console.error(error);
+                  toast.error("Error al procesar la devolución");
+              } finally {
+                  setLoading(false);
+              }
+          }
+      });
   };
 
   // --- EXPORTAR EXCEL ---
@@ -755,6 +765,7 @@ export const ReportsScreen: React.FC = () => {
                 </div>
             </div>
         )}
+        <ReturnInventoryModal pending={pendingReturn} onClose={() => setPendingReturn(null)} />
     </div>
   );
 };

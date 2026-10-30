@@ -24,7 +24,7 @@ export const applySupplyUsage = (
     branchId: string,
     usage: Usage,
     sign: 1 | -1,
-    info: { type: SupplyMoveType; user: string; supplyNames: Record<string, string>; orderNumber?: number }
+    info: { type: SupplyMoveType; user: string; supplyNames: Record<string, string>; orderNumber?: number; note?: string }
 ) => {
     Object.entries(usage).forEach(([supplyId, qty]) => {
         if (!qty) return;
@@ -37,9 +37,39 @@ export const applySupplyUsage = (
             qty: delta,
             user: info.user,
             createdAt: serverTimestamp(),
-            ...(info.orderNumber !== undefined ? { orderNumber: info.orderNumber } : {})
+            ...(info.orderNumber !== undefined ? { orderNumber: info.orderNumber } : {}),
+            ...(info.note ? { note: info.note } : {})
         };
         writer.set(newMoveRef(branchId), move, { merge: true });
+    });
+};
+
+/**
+ * Devolución de algo que ya se preparó: los insumos se gastaron, así que la existencia
+ * no cambia (ya se descontó al vender). Se registra en el historial como cancelación
+ * de la venta + merma por la misma cantidad, para que el reporte de mermas lo refleje.
+ */
+export const recordPreparedWaste = (
+    writer: SetWriter,
+    branchId: string,
+    usage: Usage,
+    info: { user: string; supplyNames: Record<string, string>; orderNumber?: number; note?: string }
+) => {
+    Object.entries(usage).forEach(([supplyId, qty]) => {
+        if (!qty) return;
+        (['cancel', 'waste'] as const).forEach(type => {
+            const move: Omit<SupplyMove, 'id'> = {
+                supplyId,
+                supplyName: info.supplyNames[supplyId] || supplyId,
+                type,
+                qty: type === 'cancel' ? qty : -qty,
+                user: info.user,
+                createdAt: serverTimestamp(),
+                ...(info.orderNumber !== undefined ? { orderNumber: info.orderNumber } : {}),
+                ...(info.note ? { note: info.note } : {})
+            };
+            writer.set(newMoveRef(branchId), move, { merge: true });
+        });
     });
 };
 

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { db, collection, query, where, orderBy, onSnapshot, Timestamp, doc, getDoc } from '../firebase';
 import { OrderTicketItem } from './OrderTicketItem';
-import { orderService } from '../services/orderService';
+import { orderService, type ReturnMode } from '../services/orderService';
+import { ReturnInventoryModal, type PendingReturn } from './ReturnInventoryModal';
 import { PaymentModal } from './PaymentModal';
 import { toast } from 'sonner';
 import type { Order } from '../types/order';
@@ -32,6 +33,7 @@ export const OrdersScreen: React.FC = () => {
   const [selectedGroup, setSelectedGroup] = useState<GroupedOrder | null>(null);
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
+  const [pendingReturn, setPendingReturn] = useState<PendingReturn | null>(null);
 
   // Seguridad
   const { currentShift } = useShiftStore();
@@ -113,7 +115,16 @@ export const OrdersScreen: React.FC = () => {
       setIsPayModalOpen(true);
   };
 
+  // Pregunta si ya se preparó antes de quitar una unidad
   const handleRemoveItem = async (itemToRemove: TicketItem, orderId: string) => {
+    setPendingReturn({
+        title: `Quitar 1 ${itemToRemove.baseName}`,
+        items: [{ ...itemToRemove, quantity: 1 }],
+        run: mode => removeItem(itemToRemove, orderId, mode)
+    });
+  };
+
+  const removeItem = async (itemToRemove: TicketItem, orderId: string, mode: ReturnMode) => {
     try {
         const orderRef = doc(db, "orders", orderId);
         const orderSnapshot = await getDoc(orderRef);
@@ -144,30 +155,39 @@ export const OrdersScreen: React.FC = () => {
         const newTotal = remainingItems.reduce((acc, i) => acc + (i.finalPrice || 0) * (i.quantity || 1), 0);
         
         // IMPORTANTE: Al eliminar desde la UI (swipe), eliminamos de a 1 unidad.
-        // Creamos una copia del item con quantity = 1 para que el servicio restaure solo eso.
-        const itemWithSingleQty = { ...itemToRemove, quantity: 1 };
+        // Usamos el artículo guardado en la orden (trae su supplyUsage) con quantity = 1.
+        const itemWithSingleQty = { ...currentItems[itemIndex], quantity: 1 };
         
-        await orderService.removeItemFromOrder(activeBranchId!, orderId, itemWithSingleQty, remainingItems, newTotal, currentUser?.name);
-        toast.success("Producto eliminado e inventario restaurado");
+        await orderService.removeItemFromOrder(activeBranchId!, orderId, itemWithSingleQty, remainingItems, newTotal, {
+            user: currentUser?.name, mode, orderNumber: orderData.orderNumber
+        });
+        toast.success(mode === 'waste' ? "Producto eliminado; insumos registrados como merma" : "Producto eliminado");
     } catch (error) {
         console.error(error);
         toast.error("Error al eliminar producto");
     }
   };
 
-  const handleDeleteGroup = async (group: GroupedOrder) => {
+  const handleDeleteGroup = (group: GroupedOrder) => {
     if (!activeBranchId) return;
-    if (!window.confirm(`¿Estás seguro de que quieres eliminar TODAS las órdenes de ${group.customerName}?`)) return;
-    
-    try {
-        for (const order of group.orders) {
-            await orderService.cancelOrder(activeBranchId, order.id!, order.items, currentUser?.name);
+    const branchId = activeBranchId;
+    setPendingReturn({
+        title: `Eliminar la cuenta de ${group.customerName}`,
+        items: group.orders.flatMap(o => o.items),
+        run: async (mode) => {
+            try {
+                for (const order of group.orders) {
+                    await orderService.cancelOrder(branchId, order.id!, order.items, {
+                        user: currentUser?.name, mode, orderNumber: order.orderNumber
+                    });
+                }
+                toast.success(`Cuenta de ${group.customerName} eliminada`);
+            } catch (error) {
+                console.error(error);
+                toast.error("Error al eliminar la cuenta");
+            }
         }
-        toast.success(`Cuenta de ${group.customerName} eliminada`);
-    } catch (error) {
-        console.error(error);
-        toast.error("Error al eliminar la cuenta");
-    }
+    });
   };
 
   const confirmPayment = async (paymentDetails: any) => {
@@ -384,6 +404,7 @@ export const OrdersScreen: React.FC = () => {
           items={selectedGroup?.orders.flatMap(o => o.items) || []}
           onConfirm={confirmPayment} 
       />
+      <ReturnInventoryModal pending={pendingReturn} onClose={() => setPendingReturn(null)} />
     </div>
   );
 };

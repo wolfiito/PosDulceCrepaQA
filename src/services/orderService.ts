@@ -5,7 +5,7 @@ import { printService } from './printService';
 import { logger } from './loggerService';
 import type { TicketItem } from '../types/menu';
 import type { PaymentDetails, OrderMode, KitchenStatus } from '../types/order';
-import { applySupplyUsage, inventoryService } from './inventoryService';
+import { applySupplyUsage, inventoryService, recordPreparedWaste } from './inventoryService';
 import { sumSupplyUsage } from '../utils/inventory';
 
 const cleanUndefined = (obj: any): any => {
@@ -22,11 +22,25 @@ const cleanUndefined = (obj: any): any => {
     return obj;
 };
 
-// Órdenes anteriores al inventario por insumo no traen supplyUsage: no regresan nada
-const restoreSupplies = async (batch: WriteBatch, branchId: string, usage: Record<string, number>, user: string) => {
+// 'restore' = no se preparó, los insumos regresan; 'waste' = ya se preparó, es merma
+export type ReturnMode = 'restore' | 'waste';
+
+export interface ReturnOptions {
+    user?: string;
+    mode?: ReturnMode;
+    orderNumber?: number;
+}
+
+// Órdenes anteriores al inventario por insumo no traen supplyUsage: no mueven nada
+const returnSupplies = async (batch: WriteBatch, branchId: string, usage: Record<string, number>, opts: ReturnOptions) => {
     if (Object.keys(usage).length === 0) return;
     const supplyNames = await inventoryService.getSupplyNames();
-    applySupplyUsage(batch, branchId, usage, 1, { type: 'cancel', user, supplyNames });
+    const info = { user: opts.user || 'Sistema', supplyNames, orderNumber: opts.orderNumber };
+    if (opts.mode === 'waste') {
+        recordPreparedWaste(batch, branchId, usage, { ...info, note: 'Devolución de algo ya preparado' });
+    } else {
+        applySupplyUsage(batch, branchId, usage, 1, { ...info, type: 'cancel', note: 'Devolución sin preparar' });
+    }
 };
 
 export const orderService = {
@@ -142,7 +156,7 @@ export const orderService = {
       await batch.commit();
   },
 
-  async cancelOrder(branchId: string, orderId: string, items: TicketItem[], user = 'Sistema') {
+  async cancelOrder(branchId: string, orderId: string, items: TicketItem[], opts: ReturnOptions = {}) {
     try {
         const batch = writeBatch(db);
         const orderRef = doc(db, "orders", orderId);
@@ -150,11 +164,12 @@ export const orderService = {
         // 1. Marcar como cancelada
         batch.update(orderRef, { 
             status: 'cancelled',
-            cancelledAt: serverTimestamp() 
+            cancelledAt: serverTimestamp(),
+            cancelMode: opts.mode || 'restore'
         });
 
-        // 2. Regresar los insumos que se descontaron al vender
-        await restoreSupplies(batch, branchId, sumSupplyUsage(items), user);
+        // 2. Regresar los insumos o registrarlos como merma
+        await returnSupplies(batch, branchId, sumSupplyUsage(items), opts);
 
         await batch.commit();
         return true;
@@ -164,7 +179,7 @@ export const orderService = {
     }
   },
 
-  async removeItemFromOrder(branchId: string, orderId: string, itemToRemove: TicketItem, remainingItems: TicketItem[], newTotal: number, user = 'Sistema') {
+  async removeItemFromOrder(branchId: string, orderId: string, itemToRemove: TicketItem, remainingItems: TicketItem[], newTotal: number, opts: ReturnOptions = {}) {
     try {
         const batch = writeBatch(db);
         const orderRef = doc(db, "orders", orderId);
@@ -184,8 +199,8 @@ export const orderService = {
             });
         }
 
-        // 2. Regresar los insumos de la unidad eliminada
-        await restoreSupplies(batch, branchId, sumSupplyUsage([itemToRemove]), user);
+        // 2. Regresar los insumos de la unidad eliminada o registrarlos como merma
+        await returnSupplies(batch, branchId, sumSupplyUsage([itemToRemove]), opts);
 
         await batch.commit();
         return true;
