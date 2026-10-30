@@ -3,7 +3,7 @@ import { useState, useMemo, useEffect } from 'react';
 import Modal from 'react-modal';
 import type { MenuGroup, Modifier, TicketItem, PriceRule } from '../types/menu';
 import { MODIFIER_GROUPS, isExclusiveGroup } from '../constants/menuConstants';
-import { calculateCustomItemPrice, getBranchPrice } from '../utils/pricing';
+import { calculateCustomItemPrice, getBranchPrice, getBranchAdjustedRule } from '../utils/pricing';
 import { useInventoryStore } from '../store/useInventoryStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { useMenuStore } from '../store/useMenuStore';
@@ -72,19 +72,7 @@ export function CustomizeCrepeModal({ isOpen, onClose, group, allModifiers, allP
 // 1. Extraemos el inventario
 const { stockData } = useInventoryStore();
 const { activeBranchId } = useAuthStore();
-const branchAdjustedPriceRule = useMemo(() => {
-  if (!priceRule) return undefined;
-  return {
-      ...priceRule,
-      initialPrice: priceRule.branchInitialPrices?.[activeBranchId || ''] ?? priceRule.initialPrice,
-      incrementPerIngredient: priceRule.branchIncrements?.[activeBranchId || ''] ?? priceRule.incrementPerIngredient,
-      basePrices: priceRule.basePrices.map(bp => ({
-          ...bp, // Mantenemos el conteo (ej. 1 ing, 2 ing)
-          // Si la sucursal tiene un precio especial para este escalón, lo usamos. Si no, usamos el base.
-          price: bp.branchPrices?.[activeBranchId || ''] ?? bp.price 
-      }))
-  };
-}, [priceRule, activeBranchId]);
+const branchAdjustedPriceRule = useMemo(() => getBranchAdjustedRule(priceRule, activeBranchId), [priceRule, activeBranchId]);
 // 2. Filtramos los ingredientes
 const modifiersForCurrentStep = useMemo(() => {
   if (!currentStepInfo) return [];
