@@ -4,6 +4,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { logger } from '../../services/loggerService';
 import { useAuthStore } from '../../store/useAuthStore';
+import { seedInventory } from './seedInventory';
 // import { GroupsManager } from './GroupsManager';
 
 // #region Grupos Principales
@@ -1997,6 +1998,8 @@ const SECTIONS = [
     { key: "crepas", label: "Crepas Dulces & Saladas", fn: seedCrepas },
     { key: "postres", label: "Postres", fn: seedPostres },
     { key: "price_rules", label: "Reglas de Precio", fn: seedPriceRules },
+    // Va al final: asigna recetas a lo que crearon las secciones anteriores
+    { key: "inventario", label: "Inventario (gramajes estimados)", fn: seedInventory },
 ];
 // #endregion
 
