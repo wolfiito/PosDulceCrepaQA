@@ -1970,9 +1970,9 @@ async function seedPriceRules() {
         {
             id: "rule_waffles_hc",
             name: "Regla Waffles/HotCakes",
-            initialPrice: 35,
+            initialPrice: 60,
             incrementPerIngredient: 5,
-            branchInitialPrices: { "wa9igpvRpHkYpT7RPqgu": 40 },
+            branchInitialPrices: { "wa9igpvRpHkYpT7RPqgu": 65 },
             basePrices: []
         },
         {
