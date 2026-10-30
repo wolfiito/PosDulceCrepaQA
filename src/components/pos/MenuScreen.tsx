@@ -6,6 +6,7 @@ import { useUIStore } from '../../store/useUIStore';
 import { useTicketStore } from '../../store/useTicketStore';
 import { useAuthStore } from '../../store/useAuthStore'; 
 import { useInventoryStore } from '../../store/useInventoryStore';
+import { isRecipeBlocked } from '../../utils/inventory';
 import { ProductCard } from '../ProductCard';
 import { IconBack } from '../Icons';
 import { isExclusiveGroup } from '../../constants/menuConstants';
@@ -22,12 +23,14 @@ export const MenuScreen: React.FC = () => {
     const isRoot = !currentGroup;
 
     const isItemOutOfStock = (item: MenuItem | MenuGroup) => {
-        const inv = stockData[item.id];
-        const isTracked = (item as any).trackStock === true || inv?.trackStock === true;
-        const realStock = Number(inv?.currentStock) || 0;
-        
-        // 1. Check direct stock for the item if tracked
-        if (isTracked && realStock <= 0) return true;
+        // 1. La receta propia usa un insumo marcado como agotado en la sucursal
+        if ('level' in item) {
+            if (isRecipeBlocked(item.recipe, stockData)) return true;
+        } else if ('variants' in item) {
+            if (item.variants.every(v => isRecipeBlocked(v.recipe, stockData))) return true;
+        } else if (isRecipeBlocked(item.recipe, stockData)) {
+            return true;
+        }
 
         // Helper to check if a group has any available options
         const hasOptionsInStock = (groupId: string) => {
@@ -37,10 +40,7 @@ export const MenuScreen: React.FC = () => {
 
             return modsForGroup.some(mod => {
                 if (activeBranchId && mod.disabledIn?.includes(activeBranchId)) return false;
-                const minv = stockData[mod.id];
-                const mTracked = mod.trackStock === true || minv?.trackStock === true;
-                const mStock = Number(minv?.currentStock) || 0;
-                return !mTracked || mStock > 0;
+                return !isRecipeBlocked(mod.recipe, stockData);
             });
         };
 

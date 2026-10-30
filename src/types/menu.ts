@@ -1,3 +1,5 @@
+import type { RecipeLine } from './inventory';
+
 
 export interface FixedPriceItem {
     id: string; 
@@ -9,6 +11,7 @@ export interface FixedPriceItem {
     modifierGroups?: string[];
     disabledIn?: string[];        
     branchPrices?: Record<string, number>;
+    recipe?: RecipeLine[];
   }
   
   export interface VariantPriceItem {
@@ -21,6 +24,7 @@ export interface FixedPriceItem {
       price: number;
       cost?: number;
       branchPrices?: Record<string, number>;
+      recipe?: RecipeLine[];
     }[];
     modifierGroups?: string[];
     disabledIn?: string[];
@@ -35,9 +39,8 @@ export interface FixedPriceItem {
     cost?: number;
     branchPrices?: Record<string, number>;
     group: string; 
-    trackStock?: boolean;
-    currentStock?: number;
     disabledIn?: string[];
+    recipe?: RecipeLine[];
   }
   
   export interface PriceRule {
@@ -67,6 +70,7 @@ export interface FixedPriceItem {
     base_group?: string; 
     extra_groups?: string[]; 
     topping_groups?: string[]; 
+    recipe?: RecipeLine[]; // Lo que gasta la base (ej. masa), además de los ingredientes elegidos
   }
   export interface ModifierGroup {
     id: string;
@@ -83,6 +87,8 @@ export interface FixedPriceItem {
     type: 'CUSTOM' | 'FIXED' | 'VARIANT'; 
     quantity?: number; 
     productId?: string;
+    // Insumos que gasta UNA unidad (unidad base), calculado al enviar la orden
+    supplyUsage?: Record<string, number>;
     details?: {
       itemId?: string; 
       baseRuleId?: string; 

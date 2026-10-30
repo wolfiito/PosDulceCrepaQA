@@ -129,7 +129,7 @@ const BalanceCard = ({ data }: { data: DailyReportData }) => {
 };
 
 export const ReportsScreen: React.FC = () => {
-  const { activeBranchId } = useAuthStore(); // <--- OBTENER SUCURSAL
+  const { activeBranchId, currentUser } = useAuthStore(); // <--- OBTENER SUCURSAL
   
   // Eliminamos 'inventario' de las opciones de tab
   const [tab, setTab] = useState<'ventas' | 'tickets' | 'analisis'>('ventas');
@@ -173,7 +173,7 @@ export const ReportsScreen: React.FC = () => {
 
       try {
           setLoading(true);
-          await orderService.cancelOrder(activeBranchId, selectedOrder.id, selectedOrder.items);
+          await orderService.cancelOrder(activeBranchId, selectedOrder.id, selectedOrder.items, currentUser?.name);
           
           toast.success("Ticket devuelto y stock restaurado");
           setSelectedOrder(null); 

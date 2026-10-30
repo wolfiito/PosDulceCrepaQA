@@ -5,6 +5,7 @@ import type { VariantPriceItem, FixedPriceItem, Modifier, TicketItem, MenuItem }
 import { isExclusiveGroup } from '../constants/menuConstants';
 import { getBranchPrice } from '../utils/pricing';
 import { useInventoryStore } from '../store/useInventoryStore';
+import { isRecipeBlocked } from '../utils/inventory';
 import { useAuthStore } from '../store/useAuthStore';
 import { useMenuStore } from '../store/useMenuStore';
 
@@ -33,9 +34,13 @@ export function CustomizeVariantModal({ isOpen, onClose, item, allModifiers, onA
     if (!item) return null;
     
     const [step, setStep] = useState(0);
-    const [selectedVariant, setSelectedVariant] = useState(isVariantPrice(item) ? item.variants[0] : initialVariant);
-    const [selectedModifiers, setSelectedModifiers] = useState<Map<string, Modifier>>(new Map());
     const { stockData } = useInventoryStore();
+    // Primer tamaño cuyos insumos no estén agotados
+    const firstVariant = () => isVariantPrice(item)
+        ? item.variants.find(v => !isRecipeBlocked(v.recipe, stockData)) || item.variants[0]
+        : initialVariant;
+    const [selectedVariant, setSelectedVariant] = useState(firstVariant);
+    const [selectedModifiers, setSelectedModifiers] = useState<Map<string, Modifier>>(new Map());
     const { activeBranchId } = useAuthStore();
     const { modifierGroups } = useMenuStore();
 
@@ -43,7 +48,7 @@ export function CustomizeVariantModal({ isOpen, onClose, item, allModifiers, onA
     useEffect(() => {
         if (isOpen && item) {
             setStep(0);
-            setSelectedVariant(isVariantPrice(item) ? item.variants[0] : initialVariant);
+            setSelectedVariant(firstVariant());
             setSelectedModifiers(new Map());
         }
     }, [isOpen, item]);
@@ -76,7 +81,7 @@ export function CustomizeVariantModal({ isOpen, onClose, item, allModifiers, onA
             stepList.push({ 
                 id: 'variants',
                 name: 'Tamaño', 
-                options: item.variants, 
+                options: item.variants.filter(v => !isRecipeBlocked(v.recipe, stockData)),
                 isExclusive: true,
                 isRequired: true,
                 type: 'variant_selector'
@@ -95,13 +100,8 @@ export function CustomizeVariantModal({ isOpen, onClose, item, allModifiers, onA
                 if (activeBranchId && mod.disabledIn?.includes(activeBranchId)) {
                     return false; 
                 }
-                const inv = stockData[mod.id];
-                const isTracked = mod.trackStock === true || inv?.trackStock === true;
-                const realStock = inv?.currentStock ?? 0;
-                if (isTracked && realStock <= 0) {
-                    return false; 
-                }
-                return true;
+                // Oculta lo que usa un insumo marcado como agotado en la sucursal
+                return !isRecipeBlocked(mod.recipe, stockData);
             });
             
             const isExclusive = isExclusiveGroup(groupId, modifierGroups);

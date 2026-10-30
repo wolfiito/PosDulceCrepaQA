@@ -7,6 +7,8 @@ import type { MenuItem, MenuGroup, ModifierGroup, VariantPriceItem, FixedPriceIt
 import { isExclusiveGroup } from '../../constants/menuConstants';
 import { getRuleBasePrice, getBranchAdjustedRule } from '../../utils/pricing';
 import { Check, ChevronDown, ChevronRight, Layers, Plus, Save, Trash, TriangleAlert, X } from 'lucide-react';
+import type { RecipeLine, Supply } from '../../types/inventory';
+import { RecipeEditor, cleanRecipe } from './RecipeEditor';
 
 // Tipos auxiliares para el panel
 interface Branch { id: string; name: string; }
@@ -30,7 +32,7 @@ interface Draft {
     folderIds: string[];
 }
 
-type PriceRow = { name: string; price: number; cost?: number; branchPrices?: Record<string, number> };
+type PriceRow = { name: string; price: number; cost?: number; branchPrices?: Record<string, number>; recipe?: RecipeLine[] };
 
 // Lista nueva creada desde el formulario del producto
 interface NewListForm {
@@ -49,17 +51,17 @@ const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
 const getPriceRows = (item: MenuItem): PriceRow[] =>
     isVariantItem(item)
         ? item.variants
-        : [{ name: 'Precio', price: item.price, cost: item.cost, branchPrices: item.branchPrices }];
+        : [{ name: 'Precio', price: item.price, cost: item.cost, branchPrices: item.branchPrices, recipe: item.recipe }];
 
 const toVariantItem = (item: FixedPriceItem): VariantPriceItem => {
-    const { price, cost, branchPrices, ...rest } = item;
-    return { ...rest, variants: [{ name: 'Chico', price, cost, branchPrices: branchPrices || {} }] };
+    const { price, cost, branchPrices, recipe, ...rest } = item;
+    return { ...rest, variants: [{ name: 'Chico', price, cost, branchPrices: branchPrices || {}, recipe }] };
 };
 
 const toFixedItem = (item: VariantPriceItem): FixedPriceItem => {
     const { variants, ...rest } = item;
     const first = variants[0];
-    return { ...rest, price: first?.price || 0, cost: first?.cost, branchPrices: first?.branchPrices || {} };
+    return { ...rest, price: first?.price || 0, cost: first?.cost, branchPrices: first?.branchPrices || {}, recipe: first?.recipe };
 };
 
 export const ProductsManager: React.FC = () => {
@@ -69,6 +71,7 @@ export const ProductsManager: React.FC = () => {
     const [folders, setFolders] = useState<MenuGroup[]>([]);
     const [buildGroups, setBuildGroups] = useState<MenuGroup[]>([]);
     const [rules, setRules] = useState<PriceRule[]>([]);
+    const [supplies, setSupplies] = useState<Supply[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Filtros del listado
@@ -89,18 +92,20 @@ export const ProductsManager: React.FC = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [itemsSnap, branchesSnap, modGroupsSnap, groupsSnap, rulesSnap] = await Promise.all([
+            const [itemsSnap, branchesSnap, modGroupsSnap, groupsSnap, rulesSnap, suppliesSnap] = await Promise.all([
                 getDocs(collection(db, 'menu_items')),
                 getDocs(collection(db, 'branches')),
                 getDocs(collection(db, 'modifier_groups')),
                 getDocs(collection(db, 'menu_groups')),
-                getDocs(collection(db, 'price_rules'))
+                getDocs(collection(db, 'price_rules')),
+                getDocs(collection(db, 'supplies'))
             ]);
 
             setItems(itemsSnap.docs.map(d => d.data() as MenuItem));
             setBranches(branchesSnap.docs.map(d => ({ id: d.id, name: d.data().name })));
             setModGroups(modGroupsSnap.docs.map(d => ({ id: d.id, ...d.data() } as ModifierGroup)));
             setRules(rulesSnap.docs.map(d => ({ id: d.id, ...d.data() } as PriceRule)));
+            setSupplies(suppliesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Supply)).sort((a, b) => a.name.localeCompare(b.name)));
 
             // Carpetas que muestran productos; las de "armar" usan reglas de precio y se listan aparte
             const allGroups = groupsSnap.docs.map(d => ({ id: d.id, ...d.data() } as MenuGroup));
@@ -288,7 +293,7 @@ export const ProductsManager: React.FC = () => {
                 const modId = `mod_${stamp}_${i}`;
                 batch.set(doc(db, 'modifiers', modId), {
                     id: modId, name: o.name.trim(), price: Number(o.price) || 0,
-                    group: listId, trackStock: false, disabledIn: []
+                    group: listId, disabledIn: []
                 });
             });
             await batch.commit();
@@ -327,7 +332,10 @@ export const ProductsManager: React.FC = () => {
             const batch = writeBatch(db);
 
             // clone() quita los campos undefined (ej. cost), que Firestore no acepta
-            batch.set(doc(db, 'menu_items', idToSave), clone({ ...item, name: item.name.trim(), id: idToSave }));
+            const withRecipes: MenuItem = isVariantItem(item)
+                ? { ...item, variants: item.variants.map(v => ({ ...v, recipe: cleanRecipe(v.recipe) })) }
+                : { ...item, recipe: cleanRecipe(item.recipe) };
+            batch.set(doc(db, 'menu_items', idToSave), clone({ ...withRecipes, name: item.name.trim(), id: idToSave }));
 
             // Agregar o quitar el producto de cada carpeta según lo elegido
             folders.forEach(folder => {
@@ -403,7 +411,8 @@ export const ProductsManager: React.FC = () => {
             const toSave: MenuGroup = clone({
                 ...buildDraft, id, name, level, parent: parentId,
                 extra_groups: buildDraft.extra_groups || [],
-                topping_groups: buildDraft.topping_groups || []
+                topping_groups: buildDraft.topping_groups || [],
+                recipe: cleanRecipe(buildDraft.recipe)
             });
             delete toSave.items_ref;
             await setDoc(doc(db, 'menu_groups', id), toSave);
@@ -517,7 +526,15 @@ export const ProductsManager: React.FC = () => {
                             )}
                         </section>
 
-                        {/* 3. INGREDIENTES */}
+                        {/* 3. INVENTARIO DE LA BASE */}
+                        <section className="space-y-2">
+                            <h3 className="font-bold">Insumos de la base</h3>
+                            <p className="text-[11px] opacity-60">Lo que gasta cada pieza además de los ingredientes elegidos (ej. 80 g de masa). Lo de cada ingrediente se captura en "Opciones".</p>
+                            <RecipeEditor recipe={buildDraft.recipe} supplies={supplies}
+                                onChange={recipe => updateBuild({ recipe })} />
+                        </section>
+
+                        {/* 4. INGREDIENTES */}
                         <section className="space-y-4">
                             <div className="form-control">
                                 <label className="label"><span className="label-text font-bold">Ingredientes que cuentan para el precio</span></label>
@@ -705,6 +722,19 @@ export const ProductsManager: React.FC = () => {
                                     <button onClick={addSize} className="btn btn-sm btn-ghost w-full border border-dashed border-base-300">+ Agregar tamaño</button>
                                 )}
                             </div>
+                        </section>
+
+                        {/* INVENTARIO */}
+                        <section className="space-y-2">
+                            <h3 className="font-bold">¿Qué insumos gasta?</h3>
+                            <p className="text-[11px] opacity-60">Se descuentan del inventario de la sucursal en cada venta (ej. 1 pza de Coca-Cola, 250 ml de leche). Los de cada opción se capturan en "Opciones".</p>
+                            {rows.map((row, index) => (
+                                <div key={index} className="space-y-1">
+                                    {isVariant && <p className="text-xs font-bold opacity-70">{row.name || `Tamaño ${index + 1}`}</p>}
+                                    <RecipeEditor recipe={row.recipe} supplies={supplies}
+                                        onChange={recipe => updatePriceRow(index, { recipe })} />
+                                </div>
+                            ))}
                         </section>
 
                         {/* 4. PREGUNTAS AL CLIENTE */}

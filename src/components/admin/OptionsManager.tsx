@@ -1,12 +1,14 @@
 // src/components/admin/OptionsManager.tsx
 // Listas de opciones (ej. "Tipo de leche") y sus opciones (ej. "Deslactosada") en una sola pantalla.
 import React, { useState, useEffect, useMemo } from 'react';
-import { collection, getDocs, getDoc, doc, setDoc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { toast } from 'sonner';
 import type { Modifier, ModifierGroup, MenuItem, MenuGroup } from '../../types/menu';
 import { isExclusiveGroup } from '../../constants/menuConstants';
 import { Package, Pencil, Trash, X } from 'lucide-react';
+import type { Supply } from '../../types/inventory';
+import { RecipeEditor, cleanRecipe } from './RecipeEditor';
 
 interface Branch { id: string; name: string; }
 
@@ -18,6 +20,7 @@ export const OptionsManager: React.FC = () => {
     const [branches, setBranches] = useState<Branch[]>([]);
     const [products, setProducts] = useState<MenuItem[]>([]);
     const [menuGroups, setMenuGroups] = useState<MenuGroup[]>([]);
+    const [supplies, setSupplies] = useState<Supply[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
 
@@ -33,12 +36,13 @@ export const OptionsManager: React.FC = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [modsSnap, listsSnap, branchesSnap, itemsSnap, groupsSnap] = await Promise.all([
+            const [modsSnap, listsSnap, branchesSnap, itemsSnap, groupsSnap, suppliesSnap] = await Promise.all([
                 getDocs(collection(db, 'modifiers')),
                 getDocs(collection(db, 'modifier_groups')),
                 getDocs(collection(db, 'branches')),
                 getDocs(collection(db, 'menu_items')),
-                getDocs(collection(db, 'menu_groups'))
+                getDocs(collection(db, 'menu_groups')),
+                getDocs(collection(db, 'supplies'))
             ]);
 
             setModifiers(modsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Modifier)));
@@ -46,6 +50,7 @@ export const OptionsManager: React.FC = () => {
             setBranches(branchesSnap.docs.map(d => ({ id: d.id, name: d.data().name })));
             setProducts(itemsSnap.docs.map(d => d.data() as MenuItem));
             setMenuGroups(groupsSnap.docs.map(d => ({ id: d.id, ...d.data() } as MenuGroup)));
+            setSupplies(suppliesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Supply)).sort((a, b) => a.name.localeCompare(b.name)));
         } catch (error) {
             toast.error("Error al cargar opciones");
         } finally {
@@ -138,7 +143,7 @@ export const OptionsManager: React.FC = () => {
 
     // --- OPCIONES ---
     const openNewOption = (listId: string) => {
-        setEditingMod({ id: '', name: '', price: 0, group: listId === NO_LIST ? '' : listId, trackStock: false, disabledIn: [], branchPrices: {} });
+        setEditingMod({ id: '', name: '', price: 0, group: listId === NO_LIST ? '' : listId, disabledIn: [], branchPrices: {} });
     };
 
     const handleSaveOption = async () => {
@@ -148,22 +153,11 @@ export const OptionsManager: React.FC = () => {
         setIsSaving(true);
         try {
             const idToSave = editingMod.id || `mod_${Date.now()}`;
-            // 1. Guardar en el catálogo global
-            await setDoc(doc(db, 'modifiers', idToSave), { ...editingMod, name: editingMod.name.trim(), id: idToSave });
-
-            // 2. Propagar trackStock a todas las sucursales (solo docs que ya existan)
-            const newTrackStock = editingMod.trackStock ?? false;
-            const syncBatch = writeBatch(db);
-            let hasSyncUpdates = false;
-            for (const branch of branches) {
-                const invRef = doc(db, 'branches', branch.id, 'inventory', idToSave);
-                const invSnap = await getDoc(invRef);
-                if (invSnap.exists()) {
-                    syncBatch.update(invRef, { trackStock: newTrackStock });
-                    hasSyncUpdates = true;
-                }
-            }
-            if (hasSyncUpdates) await syncBatch.commit();
+            // Se guarda sin trackStock/currentStock: el inventario ahora va por insumo (receta)
+            const { trackStock: _t, currentStock: _c, ...rest } = editingMod as Modifier & { trackStock?: boolean; currentStock?: number };
+            await setDoc(doc(db, 'modifiers', idToSave), {
+                ...rest, name: editingMod.name.trim(), id: idToSave, recipe: cleanRecipe(editingMod.recipe)
+            });
 
             toast.success("Opción guardada");
             setEditingMod(null);
@@ -275,11 +269,14 @@ export const OptionsManager: React.FC = () => {
                                         onChange={e => setEditingMod({ ...editingMod, price: Number(e.target.value) })} />
                                 </label>
                             </div>
-                            <label className="form-control flex flex-row items-center gap-3 sm:mt-6 cursor-pointer">
-                                <input type="checkbox" className="toggle toggle-primary" checked={!!editingMod.trackStock}
-                                    onChange={e => setEditingMod({ ...editingMod, trackStock: e.target.checked })} />
-                                <span className="label-text font-bold">¿Controlar inventario?</span>
-                            </label>
+                        </div>
+
+                        {/* RECETA (INVENTARIO) */}
+                        <div className="space-y-2">
+                            <h3 className="font-bold text-sm">Insumos que gasta una porción</h3>
+                            <RecipeEditor recipe={editingMod.recipe} supplies={supplies}
+                                onChange={recipe => setEditingMod({ ...editingMod, recipe })} />
+                            <p className="text-[11px] opacity-60">Se descuentan del inventario de la sucursal en cada venta. Sin insumos = no afecta inventario.</p>
                         </div>
 
                         {/* DISPONIBILIDAD Y PRECIO POR SUCURSAL */}
@@ -388,7 +385,7 @@ export const OptionsManager: React.FC = () => {
                                           )}
                                       </span>
                                       <span className="flex items-center gap-1 shrink-0">
-                                          {mod.trackStock && <span className="badge badge-xs badge-info" title="Controla inventario"><Package size={10} className="shrink-0" /></span>}
+                                          {(mod.recipe?.length ?? 0) > 0 && <span className="badge badge-xs badge-info" title="Tiene receta de inventario"><Package size={10} className="shrink-0" /></span>}
                                           <span className="text-xs opacity-70">
                                               {mod.price > 0 ? `+$${mod.price}` : 'Gratis'}
                                               {customBranches.length > 0 ? ' *' : ''}

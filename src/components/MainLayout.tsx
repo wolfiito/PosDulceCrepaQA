@@ -130,7 +130,7 @@ export const MainLayout: React.FC = () => {
                 
                 {/* --- ENLACES DE ADMIN --- */}
                 <li><Link to="/branches" className={getLinkClass('/branches')}><Building size={20} className="shrink-0" /> Sucursales</Link></li>
-                <li><Link to="/inventory-branch" className={getLinkClass('/inventory-branch')}><Package size={20} className="shrink-0" /> Inventario Global</Link></li>
+                <li><Link to="/inventory-branch" className={getLinkClass('/inventory-branch')}><Package size={20} className="shrink-0" /> Inventario</Link></li>
                 
                 <li><Link to="/users" className={getLinkClass('/users')}><IconUsers /> Usuarios</Link></li>
                 <li><Link to="/admin-menu" className={getLinkClass('/admin-menu')}><Layers size={20} className="shrink-0" /> Editor de Menú</Link></li>

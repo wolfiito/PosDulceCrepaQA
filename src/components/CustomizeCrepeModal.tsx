@@ -5,6 +5,7 @@ import type { MenuGroup, Modifier, TicketItem, PriceRule } from '../types/menu';
 import { MODIFIER_GROUPS, isExclusiveGroup } from '../constants/menuConstants';
 import { calculateCustomItemPrice, getBranchPrice, getBranchAdjustedRule } from '../utils/pricing';
 import { useInventoryStore } from '../store/useInventoryStore';
+import { isRecipeBlocked } from '../utils/inventory';
 import { useAuthStore } from '../store/useAuthStore';
 import { useMenuStore } from '../store/useMenuStore';
 
@@ -85,14 +86,8 @@ const modifiersForCurrentStep = useMemo(() => {
               return false;
           }
 
-          const inv = stockData[mod.id];
-          const isTracked = mod.trackStock === true || inv?.trackStock === true;
-          const realStock = Number(inv?.currentStock) || 0;
-
-          if (isTracked && realStock <= 0) {
-              return false; 
-          }
-          return true; 
+          // Oculta lo que usa un insumo marcado como agotado en la sucursal
+          return !isRecipeBlocked(mod.recipe, stockData);
       });
 }, [currentStepInfo, allModifiers, stockData, activeBranchId]);
 // --- USO DE LA NUEVA UTILIDAD DE PRECIOS ---
@@ -191,12 +186,6 @@ const { price: currentPrice, cost: currentCost, ruleDescription: currentRule, is
           </h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {modifiersForCurrentStep.map(mod => {
-                  // SEGURIDAD EXTRA: Si por alguna razón llegó aquí con stock 0 y trackeo activo, lo saltamos
-                  const inv = stockData[mod.id];
-                  if ((mod.trackStock || inv?.trackStock) && (inv?.currentStock ?? 0) <= 0) {
-                      return null; 
-                  }
-
                   const isSelected = selectedModifiers.has(mod.id);
                   const modifierPrice = getBranchPrice(mod.price, mod.branchPrices, activeBranchId);
                   const isCrepeOrPostreBase = mod.group === MODIFIER_GROUPS.CREPA_DULCE_BASE || mod.group === MODIFIER_GROUPS.CREPA_SALADA_BASE;

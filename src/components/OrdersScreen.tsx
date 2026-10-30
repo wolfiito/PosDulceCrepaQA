@@ -147,7 +147,7 @@ export const OrdersScreen: React.FC = () => {
         // Creamos una copia del item con quantity = 1 para que el servicio restaure solo eso.
         const itemWithSingleQty = { ...itemToRemove, quantity: 1 };
         
-        await orderService.removeItemFromOrder(activeBranchId!, orderId, itemWithSingleQty, remainingItems, newTotal);
+        await orderService.removeItemFromOrder(activeBranchId!, orderId, itemWithSingleQty, remainingItems, newTotal, currentUser?.name);
         toast.success("Producto eliminado e inventario restaurado");
     } catch (error) {
         console.error(error);
@@ -161,7 +161,7 @@ export const OrdersScreen: React.FC = () => {
     
     try {
         for (const order of group.orders) {
-            await orderService.cancelOrder(activeBranchId, order.id!, order.items);
+            await orderService.cancelOrder(activeBranchId, order.id!, order.items, currentUser?.name);
         }
         toast.success(`Cuenta de ${group.customerName} eliminada`);
     } catch (error) {

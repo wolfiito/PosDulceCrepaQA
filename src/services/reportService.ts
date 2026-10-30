@@ -1,6 +1,5 @@
 // src/services/reportService.ts
 import { db, collection, query, where, orderBy, getDocs, Timestamp } from '../firebase';
-import type { Modifier } from '../types/menu';
 import type { Order } from '../types/order'; 
 import type { DailyReportData, Expense, ProductSummary } from '../types/report';
 
@@ -189,22 +188,5 @@ export const reportService = {
 
     return this.getReportByDateRange(start, end, branchId);
   },
-  
-  // INVENTARIO GLOBAL (Este se mantiene igual, ya que el inventario por sucursal lo maneja inventoryService)
-  async getInventoryReport(): Promise<Modifier[]> {
-    try {
-      const q = query(collection(db, "modifiers"), where("trackStock", "==", true));
-      const snapshot = await getDocs(q);
-      
-      const items = snapshot.docs.map(doc => ({ 
-        id: doc.id, 
-        ...doc.data() 
-      } as Modifier));
 
-      return items.sort((a, b) => (a.currentStock || 0) - (b.currentStock || 0));
-    } catch (error) {
-      console.error("Error obteniendo inventario:", error);
-      return [];
-    }
-  }
 };
