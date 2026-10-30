@@ -94,7 +94,7 @@ export const usePosLogic = () => {
           clearTicket();
           setView('menu');
 
-          toast.success(`¡Enviado a cocina: ${currentClientName}! 👨‍🍳`);
+          toast.success(`¡Enviado a cocina: ${currentClientName}!`);
 
       } catch (error: any) {
           console.error(error);

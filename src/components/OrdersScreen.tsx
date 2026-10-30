@@ -12,6 +12,7 @@ import { useShiftStore } from '../store/useShiftStore';
 import { useUIStore } from '../store/useUIStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { printService } from '../services/printService';
+import { Receipt, Brush, ShoppingBag, UtensilsCrossed, Clock, CircleCheck, Pencil, Trash } from 'lucide-react';
 
 interface GroupedOrder {
   id: string;
@@ -104,7 +105,7 @@ export const OrdersScreen: React.FC = () => {
 
   const handlePayGroup = (group: GroupedOrder) => {
       if (!currentShift) {
-          toast.error("⛔ CAJA CERRADA: Abre turno para cobrar.");
+          toast.error("CAJA CERRADA: Abre turno para cobrar.");
           openShiftModal();
           return;
       }
@@ -222,7 +223,7 @@ export const OrdersScreen: React.FC = () => {
       
       <div className="flex items-center gap-3 mb-8 mt-4">
         <h2 className="text-3xl font-black text-base-content flex items-center gap-2">
-            🧾 Comandas Activas
+            <Receipt size={30} className="shrink-0" /> Comandas Activas
             {activeBranchId && groupedOrders.length > 0 && (
                  <span className="badge badge-primary badge-lg text-white font-bold">{groupedOrders.length}</span>
             )}
@@ -233,7 +234,7 @@ export const OrdersScreen: React.FC = () => {
           <div className="flex justify-center py-20"><span className="loading loading-spinner loading-lg text-primary"></span></div>
       ) : groupedOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 opacity-40">
-              <div className="text-6xl mb-4">🧹</div>
+              <Brush size={60} className="mb-4" />
               <h3 className="text-xl font-bold">Todo limpio</h3>
               <p>No hay cuentas abiertas por cobrar.</p>
           </div>
@@ -291,11 +292,11 @@ export const OrdersScreen: React.FC = () => {
                             <div className="flex justify-between items-start mb-1">
                                 <h3 className="font-black text-lg leading-tight line-clamp-1">{group.customerName}</h3>
                                 <span className={`badge ${badgeColor} badge-sm font-bold text-white shadow-sm shrink-0`}>
-                                    {group.mode === 'Para Llevar' ? '🥡 Llevar' : '🍽️ Mesa'}
+                                    <span className="flex items-center gap-1">{group.mode === 'Para Llevar' ? <><ShoppingBag size={12} className="shrink-0" /> Llevar</> : <><UtensilsCrossed size={12} className="shrink-0" /> Mesa</>}</span>
                                 </span>
                             </div>
                             <div className="flex items-center gap-1 text-xs font-medium text-gray-400">
-                                <span>🕒 Abierto hace: {timeAgo}</span>
+                                <Clock size={12} className="shrink-0" /><span>Abierto hace: {timeAgo}</span>
                             </div>
                         </div>
 
@@ -347,14 +348,14 @@ export const OrdersScreen: React.FC = () => {
                                         className={`btn btn-outline border-none text-[10px] font-bold h-10 min-h-0 ${editingGroupId === groupId ? 'btn-success bg-green-50' : 'bg-gray-50'}`}
                                         title="Activar edición de productos"
                                     >
-                                        {editingGroupId === groupId ? '✅ LISTO' : '✏️ EDITAR'}
+                                        {editingGroupId === groupId ? <><CircleCheck size={14} className="shrink-0" /> LISTO</> : <><Pencil size={14} className="shrink-0" /> EDITAR</>}
                                     </button>
                                     <button 
                                         onClick={() => handleDeleteGroup(group)}
                                         className="btn btn-outline btn-error border-none bg-red-50 hover:bg-red-100 text-[10px] font-bold h-10 min-h-0"
                                         title="Eliminar toda la comanda"
                                     >
-                                        🗑️ ELIMINAR
+                                        <Trash size={14} className="shrink-0" /> ELIMINAR
                                     </button>
                                 </div>
                                 <button 

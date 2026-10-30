@@ -5,6 +5,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { inventoryService, type BranchInventoryItem } from '../../services/inventoryService';
 import { userService } from '../../services/userService';
 import type { Branch } from '../../types/branch';
+import { Package, Search } from 'lucide-react';
 
 export const InventoryByBranchScreen: React.FC = () => {
     const { activeBranchId, setActiveBranch } = useAuthStore(); // Usamos el store para cambiar contexto si es admin
@@ -68,7 +69,7 @@ export const InventoryByBranchScreen: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 mt-4">
                 <div>
                     <h2 className="text-3xl font-black text-base-content flex items-center gap-2">
-                        📦 Existencias Locales
+                        <Package size={28} className="shrink-0" /> Existencias Locales
                     </h2>
                     <p className="text-sm opacity-60">Gestiona el stock físico de cada tienda independientemente</p>
                 </div>
@@ -80,14 +81,14 @@ export const InventoryByBranchScreen: React.FC = () => {
                 >
                     <option value="" disabled>Selecciona Sucursal</option>
                     {branches.map(b => (
-                        <option key={b.id} value={b.id}>🏢 {b.name}</option>
+                        <option key={b.id} value={b.id}>{b.name}</option>
                     ))}
                 </select>
             </div>
 
             {/* Buscador */}
             <div className="mb-6 relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl">🔍</span>
+                <Search size={20} className="shrink-0 absolute left-4 top-1/2 -translate-y-1/2 opacity-50" />
                 <input 
                     type="text"
                     placeholder="Buscar ingrediente..."

@@ -6,6 +6,7 @@ import { db } from '../../firebase';
 import { toast } from 'sonner';
 import type { PriceRule, MenuGroup } from '../../types/menu';
 import { getRuleBasePrice, getBranchAdjustedRule } from '../../utils/pricing';
+import { ChevronDown, ChevronRight, Trash, X } from 'lucide-react';
 
 interface Branch { id: string; name: string; }
 
@@ -177,7 +178,7 @@ export const PriceRulesManager: React.FC = () => {
                 <div className="bg-base-100 w-full sm:max-w-2xl h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in-up">
                     <div className="p-4 border-b border-base-200 bg-warning/10 flex justify-between items-center">
                         <h2 className="text-xl font-black text-warning">{editingRule.id ? 'Editar Regla' : 'Nueva Regla'}</h2>
-                        <button onClick={() => setEditingRule(null)} className="btn btn-circle btn-ghost btn-sm">✕</button>
+                        <button onClick={() => setEditingRule(null)} className="btn btn-circle btn-ghost btn-sm"><X size={16} className="shrink-0" /></button>
                     </div>
 
                     <div className="p-4 overflow-y-auto flex-1 space-y-5">
@@ -238,7 +239,7 @@ export const PriceRulesManager: React.FC = () => {
                                                     value={tier.price || ''} onChange={e => updateTier(index, { price: Number(e.target.value) })} />
                                             </label>
                                             <button onClick={() => removeTier(index)} disabled={editingRule.basePrices.length === 1}
-                                                className="btn btn-square btn-ghost btn-sm text-error">🗑️</button>
+                                                className="btn btn-square btn-ghost btn-sm text-error"><Trash size={16} className="shrink-0" /></button>
                                         </div>
                                     ))}
                                     <button onClick={addTier} className="btn btn-sm btn-ghost w-full border border-dashed border-base-300">+ Agregar escalón</button>
@@ -258,8 +259,8 @@ export const PriceRulesManager: React.FC = () => {
                         {/* PRECIOS POR SUCURSAL */}
                         {branches.length > 0 && (
                             <section className="space-y-2">
-                                <button onClick={() => setShowBranches(!showBranches)} className="text-sm link link-hover font-bold">
-                                    {showBranches ? '▾' : '▸'} Precios distintos por sucursal
+                                <button onClick={() => setShowBranches(!showBranches)} className="text-sm link link-hover font-bold inline-flex items-center gap-1">
+                                    {showBranches ? <ChevronDown size={14} className="shrink-0" /> : <ChevronRight size={14} className="shrink-0" />} Precios distintos por sucursal
                                 </button>
                                 {showBranches && branches.map(b => (
                                     <div key={b.id} className="bg-base-200/50 rounded-xl p-3 space-y-2 border border-base-300">
@@ -334,7 +335,7 @@ export const PriceRulesManager: React.FC = () => {
 
                     <div className="p-3 border-t border-base-200 bg-base-200/50 flex gap-2">
                         {editingRule.id && (
-                            <button onClick={() => handleDelete(editingRule)} className="btn btn-ghost text-error">🗑️</button>
+                            <button onClick={() => handleDelete(editingRule)} className="btn btn-ghost text-error"><Trash size={16} className="shrink-0" /></button>
                         )}
                         <button onClick={() => setEditingRule(null)} className="btn btn-ghost flex-1">Cancelar</button>
                         <button onClick={handleSave} disabled={isSaving} className="btn btn-warning flex-[2]">

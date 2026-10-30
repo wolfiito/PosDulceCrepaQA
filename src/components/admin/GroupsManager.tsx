@@ -5,6 +5,7 @@ import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore'
 import { db } from '../../firebase';
 import { toast } from 'sonner';
 import type { MenuGroup, MenuItem, ModifierGroup, PriceRule } from '../../types/menu';
+import { Check, Folder, Layers, Plus, Trash, X } from 'lucide-react';
 
 const ROOT_ID = 'root';
 
@@ -207,7 +208,7 @@ export const GroupsManager: React.FC = () => {
                 <div className="bg-base-100 w-full sm:max-w-2xl h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in-up">
                     <div className="p-4 border-b border-base-200 bg-base-200/50 flex justify-between items-center">
                         <h2 className="text-xl font-black text-primary">{editingGroup.id ? 'Editar Categoría' : 'Nueva Categoría'}</h2>
-                        <button onClick={() => setEditingGroup(null)} className="btn btn-circle btn-ghost btn-sm">✕</button>
+                        <button onClick={() => setEditingGroup(null)} className="btn btn-circle btn-ghost btn-sm"><X size={16} className="shrink-0" /></button>
                     </div>
 
                     <div className="p-4 overflow-y-auto flex-1 space-y-5">
@@ -235,11 +236,11 @@ export const GroupsManager: React.FC = () => {
                             <div className="join w-full">
                                 <button onClick={() => setKind('FOLDER')}
                                     className={`btn btn-sm join-item flex-1 ${!isBuild ? 'btn-primary' : 'btn-outline border-base-300'}`}>
-                                    📂 Muestra productos
+                                    <Folder size={14} className="shrink-0" /> Muestra productos
                                 </button>
                                 <button onClick={() => setKind('BUILD')}
                                     className={`btn btn-sm join-item flex-1 ${isBuild ? 'btn-primary' : 'btn-outline border-base-300'}`}>
-                                    🛠️ Se arma
+                                    <Layers size={14} className="shrink-0" /> Se arma
                                 </button>
                             </div>
                             <p className="text-xs opacity-60">
@@ -253,7 +254,7 @@ export const GroupsManager: React.FC = () => {
                             /* PRODUCTOS DE LA CARPETA */
                             <section className="space-y-2">
                                 <h3 className="font-bold">Productos ({editingGroup.items_ref?.length || 0})</h3>
-                                <input type="search" className="input input-bordered input-sm w-full" placeholder="🔍 Buscar producto..."
+                                <input type="search" className="input input-bordered input-sm w-full" placeholder="Buscar producto..."
                                     value={itemSearch} onChange={e => setItemSearch(e.target.value)} />
                                 <div className="max-h-64 overflow-y-auto p-1 bg-base-200/50 rounded-lg divide-y divide-base-200">
                                     {visibleItems.map(item => (
@@ -306,7 +307,7 @@ export const GroupsManager: React.FC = () => {
                                                 return (
                                                     <button key={l.id} onClick={() => toggleInArray(field, l.id)}
                                                         className={`btn btn-xs ${isSelected ? 'btn-primary' : 'btn-outline border-base-300'}`}>
-                                                        {isSelected ? '✓ ' : '+ '}{l.name}
+                                                        {isSelected ? <Check size={12} className="shrink-0" /> : <Plus size={12} className="shrink-0" />}{l.name}
                                                     </button>
                                                 );
                                             })}
@@ -332,7 +333,7 @@ export const GroupsManager: React.FC = () => {
 
                     <div className="p-3 border-t border-base-200 bg-base-200/50 flex gap-2">
                         {editingGroup.id && (
-                            <button onClick={() => handleDelete(editingGroup)} className="btn btn-ghost text-error">🗑️</button>
+                            <button onClick={() => handleDelete(editingGroup)} className="btn btn-ghost text-error"><Trash size={16} className="shrink-0" /></button>
                         )}
                         <button onClick={() => setEditingGroup(null)} className="btn btn-ghost flex-1">Cancelar</button>
                         <button onClick={handleSave} disabled={isSaving} className="btn btn-primary flex-[2]">
@@ -362,7 +363,7 @@ export const GroupsManager: React.FC = () => {
                         className="w-full flex items-center justify-between gap-2 p-3 text-left hover:bg-base-200/50"
                         style={{ paddingLeft: `${0.75 + depth * 1.25}rem` }}>
                         <span className="min-w-0">
-                            <span className="font-bold block truncate">{isBuildGroup(group) ? '🛠️' : '📂'} {group.name}</span>
+                            <span className="font-bold flex items-center gap-2 min-w-0">{isBuildGroup(group) ? <Layers size={16} className="shrink-0" /> : <Folder size={16} className="shrink-0" />}<span className="truncate">{group.name}</span></span>
                             <span className="text-[11px] opacity-60 block truncate">
                                 {isBuildGroup(group)
                                     ? `Se arma · ${ruleName(group.rules_ref)} · ${listName(group.base_group)}`

@@ -16,6 +16,7 @@ import { useAuthStore } from '../store/useAuthStore'; // <--- IMPORTANTE
 import type { DailyReportData } from '../types/report';
 import type { Order, PaymentMethod } from '../types/order';
 import { excelExportService } from '../services/excelExportService';
+import { Banknote, CreditCard, Smartphone, Shuffle, CircleDollarSign, Calculator, FileSpreadsheet, Receipt, Brain, ArrowRight, Search, TrendingDown, Landmark, Star, Lightbulb, Sparkles, Medal, ClipboardList, Trophy, ListChecks, X, Ban, Printer, Undo2, CircleQuestionMark } from 'lucide-react';
 
 // --- HELPER PARA FECHA LOCAL ---
 const getLocalToday = () => {
@@ -37,11 +38,11 @@ const getPaymentLabel = (method?: PaymentMethod) => {
 };
 
 const getPaymentIcon = (method?: PaymentMethod) => {
-    if (method === 'cash') return '💵';
-    if (method === 'card') return '💳';
-    if (method === 'transfer') return '📱';
-    if (method === 'mixed') return '🔀';
-    return '❓';
+    if (method === 'cash') return <Banknote size={12} className="shrink-0" />;
+    if (method === 'card') return <CreditCard size={12} className="shrink-0" />;
+    if (method === 'transfer') return <Smartphone size={12} className="shrink-0" />;
+    if (method === 'mixed') return <Shuffle size={12} className="shrink-0" />;
+    return <CircleQuestionMark size={12} className="shrink-0" />;
 };
 
 // --- COMPONENTES UI INTERNOS ---
@@ -65,7 +66,7 @@ const BalanceCard = ({ data }: { data: DailyReportData }) => {
         <div className="card bg-base-100 shadow-md border border-base-200 overflow-hidden">
             <div className="bg-base-200/40 p-3 border-b border-base-200">
                 <h3 className="font-bold text-sm uppercase opacity-70 flex items-center gap-2">
-                    🧮 Balance Financiero Detallado
+                    <Calculator size={16} className="shrink-0" /> Balance Financiero Detallado
                 </h3>
             </div>
             <div className="card-body p-0">
@@ -82,15 +83,15 @@ const BalanceCard = ({ data }: { data: DailyReportData }) => {
                         </div>
                         <div className="space-y-2 pl-4 border-l-2 border-success/20">
                             <div className="flex justify-between text-sm">
-                                <span className="opacity-70">💵 Efectivo</span>
+                                <span className="opacity-70 flex items-center gap-2"><Banknote size={14} className="shrink-0" /> Efectivo</span>
                                 <span className="font-mono font-bold">${data.cashTotal.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="opacity-70">💳 Tarjeta</span>
+                                <span className="opacity-70 flex items-center gap-2"><CreditCard size={14} className="shrink-0" /> Tarjeta</span>
                                 <span className="font-mono font-bold">${data.cardTotal.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="opacity-70">📱 Transferencia</span>
+                                <span className="opacity-70 flex items-center gap-2"><Smartphone size={14} className="shrink-0" /> Transferencia</span>
                                 <span className="font-mono font-bold">${data.transferTotal.toFixed(2)}</span>
                             </div>
                         </div>
@@ -333,28 +334,28 @@ export const ReportsScreen: React.FC = () => {
       // --- 9. Recomendaciones inteligentes ---
       const recommendations: string[] = [];
       if (topCombinations.length > 0 && topCombinations[0].count >= 2) {
-          recommendations.push(`🔥 Tu combinación estrella es "${topCombinations[0].name}" con ${topCombinations[0].count} pedidos. ¡Créala como crepa especial del menú!`);
+          recommendations.push(`Tu combinación estrella es "${topCombinations[0].name}" con ${topCombinations[0].count} pedidos. ¡Créala como crepa especial del menú!`);
       }
       if (topCombinations.length >= 2) {
-          recommendations.push(`✨ La 2da combinación más popular es "${topCombinations[1].name}". Podría ser tu segunda crepa especial.`);
+          recommendations.push(`La 2da combinación más popular es "${topCombinations[1].name}". Podría ser tu segunda crepa especial.`);
       }
       if (worstProducts.length > 0) {
-          recommendations.push(`📉 "${worstProducts[0].name}" tiene solo ${worstProducts[0].quantity} ventas. Considera una promo o retíralo del menú.`);
+          recommendations.push(`"${worstProducts[0].name}" tiene solo ${worstProducts[0].quantity} ventas. Considera una promo o retíralo del menú.`);
       }
       if (peakHour && peakHour.ventas > 0) {
           recommendations.push(`⏰ Tu hora pico es a las ${peakHour.hora} con ${peakHour.ventas} ventas. Refuerza personal o insumos en ese horario.`);
       }
       if (data.totalSales > 0 && data.netBalance < data.totalSales * 0.25) {
-         recommendations.push(`⚠️ Tu margen neto es menor al 25%. Revisa tus gastos operativos urgentemente.`);
+         recommendations.push(`Tu margen neto es menor al 25%. Revisa tus gastos operativos urgentemente.`);
       }
       if (averageTicket > 0) {
-          recommendations.push(`💡 Ticket promedio: $${averageTicket.toFixed(2)}. Ofrece extras (Nutella, frutas, bebida) para subirlo.`);
+          recommendations.push(`Ticket promedio: $${averageTicket.toFixed(2)}. Ofrece extras (Nutella, frutas, bebida) para subirlo.`);
       }
       if (topMode) {
-          recommendations.push(`🏪 El modo "${topMode[0]}" representa ${topMode[1]} de ${data.totalOrders} ventas (${((topMode[1]/data.totalOrders)*100).toFixed(0)}%).`);
+          recommendations.push(`El modo "${topMode[0]}" representa ${topMode[1]} de ${data.totalOrders} ventas (${((topMode[1]/data.totalOrders)*100).toFixed(0)}%).`);
       }
       if (topIngredients.length > 0) {
-          recommendations.push(`🥇 Tu ingrediente más usado es "${topIngredients[0].name}" (${topIngredients[0].quantity} veces). Asegúrate de tener stock suficiente.`);
+          recommendations.push(`Tu ingrediente más usado es "${topIngredients[0].name}" (${topIngredients[0].quantity} veces). Asegúrate de tener stock suficiente.`);
       }
 
       return { topCombinations, worstProducts, salesByHour, topIngredients, revenueByProduct, proposedSpecials, recommendations };
@@ -375,15 +376,15 @@ export const ReportsScreen: React.FC = () => {
                 </h2>
                 {data && (
                     <button onClick={exportToExcel} className="btn btn-success btn-sm text-white gap-2 shadow-sm font-bold">
-                        <span className="text-lg">📊</span> <span className="hidden sm:inline">Excel Pro</span>
+                        <FileSpreadsheet size={18} className="shrink-0" /> <span className="hidden sm:inline">Excel Pro</span>
                     </button>
                 )}
             </div>
             
             <div role="tablist" className="tabs tabs-boxed bg-base-200 shadow-sm">
-                <a role="tab" className={`tab flex-1 ${tab === 'ventas' ? 'tab-active bg-white shadow font-bold' : ''}`} onClick={() => setTab('ventas')}>💰 Finanzas</a>
-                <a role="tab" className={`tab flex-1 ${tab === 'tickets' ? 'tab-active bg-white shadow font-bold' : ''}`} onClick={() => setTab('tickets')}>🧾 Tickets</a>
-                <a role="tab" className={`tab flex-1 ${tab === 'analisis' ? 'tab-active bg-white shadow font-bold' : ''}`} onClick={() => setTab('analisis')}>🧠 Análisis</a>
+                <a role="tab" className={`tab flex-1 ${tab === 'ventas' ? 'tab-active bg-white shadow font-bold' : ''}`} onClick={() => setTab('ventas')}><span className="flex items-center gap-2"><CircleDollarSign size={16} className="shrink-0" /> Finanzas</span></a>
+                <a role="tab" className={`tab flex-1 ${tab === 'tickets' ? 'tab-active bg-white shadow font-bold' : ''}`} onClick={() => setTab('tickets')}><span className="flex items-center gap-2"><Receipt size={16} className="shrink-0" /> Tickets</span></a>
+                <a role="tab" className={`tab flex-1 ${tab === 'analisis' ? 'tab-active bg-white shadow font-bold' : ''}`} onClick={() => setTab('analisis')}><span className="flex items-center gap-2"><Brain size={16} className="shrink-0" /> Análisis</span></a>
             </div>
         </div>
 
@@ -398,10 +399,10 @@ export const ReportsScreen: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2 w-full lg:w-auto bg-base-200/50 p-1.5 rounded-lg">
                     <input type="date" className="input input-xs md:input-sm input-ghost w-full font-mono" value={startDate} onChange={e => { setStartDate(e.target.value); setActiveRange('custom'); }} />
-                    <span className="opacity-40">➜</span>
+                    <ArrowRight size={16} className="opacity-40 shrink-0" />
                     <input type="date" className="input input-xs md:input-sm input-ghost w-full font-mono" value={endDate} onChange={e => { setEndDate(e.target.value); setActiveRange('custom'); }} />
                     <button onClick={handleSearch} className="btn btn-primary btn-sm btn-square shadow-sm" disabled={loading}>
-                        {loading ? <span className="loading loading-spinner loading-xs"></span> : '🔍'}
+                        {loading ? <span className="loading loading-spinner loading-xs"></span> : <Search size={16} />}
                     </button>
                 </div>
             </div>
@@ -411,10 +412,10 @@ export const ReportsScreen: React.FC = () => {
         {tab === 'ventas' && data && (
             <div className="space-y-6 animate-fade-in">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    <StatCard title="Ventas" value={`$${data.totalSales.toFixed(2)}`} subValue={`${data.totalOrders} ventas`} icon="💰" color="border-success"/>
-                    <StatCard title="Gastos" value={`-$${data.totalExpenses.toFixed(2)}`} subValue={`${data.expenses.length} salidas`} icon="📉" color="border-error"/>
-                    <StatCard title="Utilidad" value={`$${data.netBalance.toFixed(2)}`} subValue={data.netBalance >= 0 ? 'Rentable' : 'Pérdida'} icon="🏦" color={data.netBalance >= 0 ? "border-primary" : "border-warning"}/>
-                    <StatCard title="Ticket Prom" value={`$${averageTicket.toFixed(2)}`} subValue="Por cliente" icon="🧾" color="border-info"/>
+                    <StatCard title="Ventas" value={`$${data.totalSales.toFixed(2)}`} subValue={`${data.totalOrders} ventas`} icon={<CircleDollarSign size={20} />} color="border-success"/>
+                    <StatCard title="Gastos" value={`-$${data.totalExpenses.toFixed(2)}`} subValue={`${data.expenses.length} salidas`} icon={<TrendingDown size={20} />} color="border-error"/>
+                    <StatCard title="Utilidad" value={`$${data.netBalance.toFixed(2)}`} subValue={data.netBalance >= 0 ? 'Rentable' : 'Pérdida'} icon={<Landmark size={20} />} color={data.netBalance >= 0 ? "border-primary" : "border-warning"}/>
+                    <StatCard title="Ticket Prom" value={`$${averageTicket.toFixed(2)}`} subValue="Por cliente" icon={<Receipt size={20} />} color="border-info"/>
                 </div>
                 <BalanceCard data={data} />
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -426,7 +427,7 @@ export const ReportsScreen: React.FC = () => {
                     </div>
                     <div className="card bg-base-100 shadow border border-base-200 lg:col-span-2">
                         <div className="card-body p-4">
-                            <h3 className="font-bold text-sm uppercase opacity-70 mb-2">⭐ Top Productos</h3>
+                            <h3 className="font-bold text-sm uppercase opacity-70 mb-2 flex items-center gap-2"><Star size={16} className="shrink-0" /> Top Productos</h3>
                             <div className="h-64"><ResponsiveContainer width="100%" height="100%"><BarChart data={data.productBreakdown.slice(0, 5)} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}><CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} opacity={0.3} /><XAxis type="number" hide /><YAxis dataKey="name" type="category" width={100} tick={{fontSize: 11}} /><Tooltip formatter={(value: number) => [value, 'Vendidos']} /><Bar dataKey="quantity" fill="#6366f1" radius={[0, 4, 4, 0]} barSize={20}>{data.productBreakdown.slice(0, 5).map((entry, index) => (<Cell key={`cell-${index}`} fill={index === 0 ? '#fbbf24' : '#6366f1'} />))}</Bar></BarChart></ResponsiveContainer></div>
                         </div>
                     </div>
@@ -487,7 +488,7 @@ export const ReportsScreen: React.FC = () => {
                 {/* === BLOQUE 1: RECOMENDACIONES INTELIGENTES === */}
                 <div className="card bg-gradient-to-br from-primary/5 to-secondary/5 shadow-lg border border-primary/10">
                     <div className="card-body p-5">
-                        <h3 className="font-black text-lg mb-3 flex items-center gap-2">🤖 Insights y Recomendaciones</h3>
+                        <h3 className="font-black text-lg mb-3 flex items-center gap-2"><Lightbulb size={20} className="shrink-0" /> Insights y Recomendaciones</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {analyticsData.recommendations.map((rec, idx) => (
                                 <div key={idx} className="bg-base-100 p-4 rounded-xl border border-base-200 text-sm shadow-sm hover:shadow-md transition-shadow">
@@ -505,16 +506,16 @@ export const ReportsScreen: React.FC = () => {
                 {analyticsData.proposedSpecials.length > 0 && (
                     <div className="card bg-base-100 shadow border border-base-200">
                         <div className="card-body p-5">
-                            <h3 className="font-black text-lg mb-3 flex items-center gap-2">🌟 Propuestas de Crepas Especiales</h3>
+                            <h3 className="font-black text-lg mb-3 flex items-center gap-2"><Sparkles size={20} className="shrink-0" /> Propuestas de Crepas Especiales</h3>
                             <p className="text-xs opacity-60 mb-4">Basado en las combinaciones más pedidas, te sugerimos crear estas crepas como productos fijos del menú.</p>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {analyticsData.proposedSpecials.map((sp, idx) => (
                                     <div key={idx} className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl p-4 border border-amber-200/50 dark:border-amber-700/30">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-2xl">{idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'}</span>
+                                            <Medal size={24} className={`shrink-0 ${idx === 0 ? 'text-amber-500' : idx === 1 ? 'text-slate-400' : 'text-orange-700'}`} />
                                             <span className="font-black text-lg">"{sp.nombre}"</span>
                                         </div>
-                                        <div className="text-sm opacity-80 mb-2">📋 {sp.ingredientes}</div>
+                                        <div className="text-sm opacity-80 mb-2 flex items-start gap-2"><ClipboardList size={14} className="shrink-0 mt-0.5" /> {sp.ingredientes}</div>
                                         <div className="text-xs font-mono font-bold text-primary">{sp.popularidad} pedidos con este mix</div>
                                     </div>
                                 ))}
@@ -552,7 +553,7 @@ export const ReportsScreen: React.FC = () => {
                     {/* === BLOQUE 4: COMBINACIONES ESTRELLA === */}
                     <div className="card bg-base-100 shadow border border-base-200">
                         <div className="card-body p-4">
-                            <h3 className="font-bold text-sm uppercase opacity-70 mb-4">🏆 Combinaciones Estrella</h3>
+                            <h3 className="font-bold text-sm uppercase opacity-70 mb-4 flex items-center gap-2"><Trophy size={16} className="shrink-0" /> Combinaciones Estrella</h3>
                             {analyticsData.topCombinations.length > 0 ? (
                                 <div className="h-72">
                                     <ResponsiveContainer width="100%" height="100%">
@@ -578,7 +579,7 @@ export const ReportsScreen: React.FC = () => {
                     {/* === BLOQUE 5: PRODUCTOS CON MENOS SALIDA === */}
                     <div className="card bg-base-100 shadow border border-base-200">
                         <div className="card-body p-4">
-                            <h3 className="font-bold text-sm uppercase opacity-70 mb-4">📉 Productos con Menos Salida</h3>
+                            <h3 className="font-bold text-sm uppercase opacity-70 mb-4 flex items-center gap-2"><TrendingDown size={16} className="shrink-0" /> Productos con Menos Salida</h3>
                             {analyticsData.worstProducts.length > 0 ? (
                                 <div className="h-72">
                                     <ResponsiveContainer width="100%" height="100%">
@@ -602,7 +603,7 @@ export const ReportsScreen: React.FC = () => {
                     {/* === BLOQUE 6: TOP INGREDIENTES INDIVIDUALES === */}
                     <div className="card bg-base-100 shadow border border-base-200">
                         <div className="card-body p-4">
-                            <h3 className="font-bold text-sm uppercase opacity-70 mb-4">🧂 Top Ingredientes Más Usados</h3>
+                            <h3 className="font-bold text-sm uppercase opacity-70 mb-4 flex items-center gap-2"><ListChecks size={16} className="shrink-0" /> Top Ingredientes Más Usados</h3>
                             {analyticsData.topIngredients.length > 0 ? (
                                 <div className="space-y-2">
                                     {analyticsData.topIngredients.map((ing, idx) => {
@@ -633,7 +634,7 @@ export const ReportsScreen: React.FC = () => {
                     {/* === BLOQUE 7: INGRESOS POR PRODUCTO === */}
                     <div className="card bg-base-100 shadow border border-base-200">
                         <div className="card-body p-4">
-                            <h3 className="font-bold text-sm uppercase opacity-70 mb-4">💰 Ingresos por Producto (Top 8)</h3>
+                            <h3 className="font-bold text-sm uppercase opacity-70 mb-4 flex items-center gap-2"><CircleDollarSign size={16} className="shrink-0" /> Ingresos por Producto (Top 8)</h3>
                             {analyticsData.revenueByProduct.length > 0 ? (
                                 <div className="overflow-x-auto">
                                     <table className="table table-xs w-full">
@@ -676,14 +677,14 @@ export const ReportsScreen: React.FC = () => {
                             <h3 className="font-black text-lg">Ticket #{selectedOrder.orderNumber}</h3>
                             <div className="text-xs opacity-60">{formatDateSafe(selectedOrder.createdAt)}</div>
                         </div>
-                        <button onClick={() => setSelectedOrder(null)} className="btn btn-circle btn-sm btn-ghost">✕</button>
+                        <button onClick={() => setSelectedOrder(null)} className="btn btn-circle btn-sm btn-ghost"><X size={16} /></button>
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-4">
                         
                         {selectedOrder.status === 'cancelled' && (
                             <div className="alert alert-error text-white text-sm py-2">
-                                🚫 TICKET CANCELADO / DEVUELTO
+                                <Ban size={16} className="shrink-0" /> TICKET CANCELADO / DEVUELTO
                             </div>
                         )}
 
@@ -738,7 +739,7 @@ export const ReportsScreen: React.FC = () => {
                             onClick={handleReprint}
                             className="btn btn-neutral flex-1 gap-2"
                         >
-                            🖨️ Reimprimir
+                            <Printer size={16} className="shrink-0" /> Reimprimir
                         </button>
                         
                         {selectedOrder.status !== 'cancelled' && (
@@ -747,7 +748,7 @@ export const ReportsScreen: React.FC = () => {
                                 className="btn btn-error btn-outline flex-1 gap-2"
                                 disabled={loading}
                             >
-                                {loading ? <span className="loading loading-spinner loading-xs"></span> : '💸 Devolución'}
+                                {loading ? <span className="loading loading-spinner loading-xs"></span> : <><Undo2 size={16} className="shrink-0" /> Devolución</>}
                             </button>
                         )}
                     </div>

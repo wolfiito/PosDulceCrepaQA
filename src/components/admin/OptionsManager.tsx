@@ -6,6 +6,7 @@ import { db } from '../../firebase';
 import { toast } from 'sonner';
 import type { Modifier, ModifierGroup, MenuItem, MenuGroup } from '../../types/menu';
 import { isExclusiveGroup } from '../../constants/menuConstants';
+import { Package, Pencil, Trash, X } from 'lucide-react';
 
 interface Branch { id: string; name: string; }
 
@@ -82,7 +83,7 @@ export const OptionsManager: React.FC = () => {
         // Opciones cuya lista ya no existe: antes no se mostraban en ningún lado
         const orphans = modifiers.filter(m => !listIds.has(m.group) && matches(m));
         if (orphans.length > 0) {
-            result.push({ list: { id: NO_LIST, name: '⚠️ Sin lista (no se pueden vender)' }, options: orphans });
+            result.push({ list: { id: NO_LIST, name: 'Sin lista (no se pueden vender)' }, options: orphans });
         }
 
         // Al buscar, ocultamos las listas sin coincidencias
@@ -196,7 +197,7 @@ export const OptionsManager: React.FC = () => {
                 <div className="bg-base-100 w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up">
                     <div className="p-4 border-b border-base-200 bg-info/10 flex justify-between items-center">
                         <h2 className="text-lg font-black text-info">{editingList.id ? 'Editar Lista' : 'Nueva Lista'}</h2>
-                        <button onClick={() => setEditingList(null)} className="btn btn-circle btn-ghost btn-sm">✕</button>
+                        <button onClick={() => setEditingList(null)} className="btn btn-circle btn-ghost btn-sm"><X size={16} className="shrink-0" /></button>
                     </div>
 
                     <div className="p-5 space-y-4">
@@ -223,7 +224,7 @@ export const OptionsManager: React.FC = () => {
 
                     <div className="p-3 border-t border-base-200 flex gap-2 bg-base-200/50">
                         {editingList.id && (
-                            <button onClick={() => handleDeleteList(editingList)} className="btn btn-ghost text-error">🗑️</button>
+                            <button onClick={() => handleDeleteList(editingList)} className="btn btn-ghost text-error"><Trash size={16} className="shrink-0" /></button>
                         )}
                         <button onClick={() => setEditingList(null)} className="btn btn-ghost flex-1">Cancelar</button>
                         <button onClick={handleSaveList} disabled={isSaving} className="btn btn-info text-white flex-[2]">
@@ -244,9 +245,9 @@ export const OptionsManager: React.FC = () => {
                 <div className="bg-base-100 w-full sm:max-w-lg h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in-up">
                     <div className="p-4 border-b border-base-200 bg-base-200/50 flex justify-between items-center">
                         <h2 className="text-xl font-black text-secondary">
-                            {editingMod.id ? '✏️ Editar Opción' : '🥦 Nueva Opción'}
+                            {editingMod.id ? 'Editar Opción' : 'Nueva Opción'}
                         </h2>
-                        <button onClick={() => setEditingMod(null)} className="btn btn-circle btn-ghost btn-sm">✕</button>
+                        <button onClick={() => setEditingMod(null)} className="btn btn-circle btn-ghost btn-sm"><X size={16} className="shrink-0" /></button>
                     </div>
 
                     <div className="p-4 space-y-5 overflow-y-auto flex-1">
@@ -321,7 +322,7 @@ export const OptionsManager: React.FC = () => {
 
                     <div className="p-3 border-t border-base-200 bg-base-200/50 flex gap-2">
                         {editingMod.id && (
-                            <button onClick={() => handleDeleteOption(editingMod)} className="btn btn-ghost text-error">🗑️</button>
+                            <button onClick={() => handleDeleteOption(editingMod)} className="btn btn-ghost text-error"><Trash size={16} className="shrink-0" /></button>
                         )}
                         <button onClick={() => setEditingMod(null)} className="btn btn-ghost flex-1">Cancelar</button>
                         <button onClick={handleSaveOption} disabled={isSaving} className="btn btn-secondary flex-[2]">
@@ -347,7 +348,7 @@ export const OptionsManager: React.FC = () => {
               </button>
           </div>
 
-          <input type="search" className="input input-bordered input-sm w-full" placeholder="🔍 Buscar opción..."
+          <input type="search" className="input input-bordered input-sm w-full" placeholder="Buscar opción..."
               value={search} onChange={e => setSearch(e.target.value)} />
 
           {sections.map(({ list, options }) => {
@@ -368,7 +369,7 @@ export const OptionsManager: React.FC = () => {
                               )}
                           </div>
                           {!isOrphanSection && (
-                              <button onClick={() => setEditingList({ ...list })} className="btn btn-square btn-ghost btn-sm">✏️</button>
+                              <button onClick={() => setEditingList({ ...list })} className="btn btn-square btn-ghost btn-sm"><Pencil size={16} className="shrink-0" /></button>
                           )}
                       </div>
 
@@ -387,7 +388,7 @@ export const OptionsManager: React.FC = () => {
                                           )}
                                       </span>
                                       <span className="flex items-center gap-1 shrink-0">
-                                          {mod.trackStock && <span className="badge badge-xs badge-info">📦</span>}
+                                          {mod.trackStock && <span className="badge badge-xs badge-info" title="Controla inventario"><Package size={10} className="shrink-0" /></span>}
                                           <span className="text-xs opacity-70">
                                               {mod.price > 0 ? `+$${mod.price}` : 'Gratis'}
                                               {customBranches.length > 0 ? ' *' : ''}

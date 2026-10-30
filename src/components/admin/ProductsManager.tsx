@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import type { MenuItem, MenuGroup, ModifierGroup, VariantPriceItem, FixedPriceItem, PriceRule } from '../../types/menu';
 import { isExclusiveGroup } from '../../constants/menuConstants';
 import { getRuleBasePrice, getBranchAdjustedRule } from '../../utils/pricing';
+import { Check, ChevronDown, ChevronRight, Layers, Plus, Save, Trash, TriangleAlert, X } from 'lucide-react';
 
 // Tipos auxiliares para el panel
 interface Branch { id: string; name: string; }
@@ -153,7 +154,7 @@ export const ProductsManager: React.FC = () => {
     const parentName = (parentId?: string) => {
         if (!parentId || parentId === ROOT_ID) return 'Menú principal';
         const folder = folders.find(f => f.id === parentId);
-        return folder ? folderName(folder) : '⚠️ Categoría inexistente';
+        return folder ? folderName(folder) : 'Categoría inexistente';
     };
 
     const orphanCount = useMemo(
@@ -443,9 +444,9 @@ export const ProductsManager: React.FC = () => {
                     {/* Header */}
                     <div className="p-4 border-b border-base-200 bg-base-200/50 flex items-center justify-between gap-2">
                         <h2 className="text-xl font-black text-primary">
-                            {buildDraft.id ? '✏️ Editar' : '✨ Nuevo'} · 🛠️ Se arma
+                            {buildDraft.id ? 'Editar' : 'Nuevo'} · Se arma
                         </h2>
-                        <button onClick={() => setBuildDraft(null)} className="btn btn-circle btn-ghost btn-sm">✕</button>
+                        <button onClick={() => setBuildDraft(null)} className="btn btn-circle btn-ghost btn-sm"><X size={16} className="shrink-0" /></button>
                     </div>
 
                     <div className="p-4 overflow-y-auto flex-1 space-y-6">
@@ -543,7 +544,7 @@ export const ProductsManager: React.FC = () => {
                                             return (
                                                 <button key={l.id} onClick={() => toggleBuildList(field, l.id)}
                                                     className={`btn btn-xs ${isSelected ? 'btn-primary' : 'btn-outline border-base-300'}`}>
-                                                    {isSelected ? '✓ ' : '+ '}{l.name}
+                                                    {isSelected ? <Check size={12} className="shrink-0" /> : <Plus size={12} className="shrink-0" />}{l.name}
                                                 </button>
                                             );
                                         })}
@@ -569,11 +570,11 @@ export const ProductsManager: React.FC = () => {
                     {/* Footer / Botones */}
                     <div className="p-3 border-t border-base-200 bg-base-200/50 flex gap-2">
                         {buildDraft.id && (
-                            <button onClick={() => handleDeleteBuild(buildDraft)} className="btn btn-ghost text-error">🗑️</button>
+                            <button onClick={() => handleDeleteBuild(buildDraft)} className="btn btn-ghost text-error"><Trash size={16} className="shrink-0" /></button>
                         )}
                         <button onClick={() => setBuildDraft(null)} className="btn btn-ghost flex-1">Cancelar</button>
                         <button onClick={handleSaveBuild} disabled={isSaving} className="btn btn-primary flex-[2] shadow-lg shadow-primary/30">
-                            {isSaving ? 'Guardando...' : '💾 Guardar'}
+                            {isSaving ? 'Guardando...' : <><Save size={16} className="shrink-0" /> Guardar</>}
                         </button>
                     </div>
                 </div>
@@ -602,9 +603,9 @@ export const ProductsManager: React.FC = () => {
                     {/* Header */}
                     <div className="p-4 border-b border-base-200 bg-base-200/50 flex items-center justify-between gap-2">
                         <h2 className="text-xl font-black text-primary">
-                            {item.id ? '✏️ Editar Producto' : '✨ Nuevo Producto'}
+                            {item.id ? 'Editar Producto' : 'Nuevo Producto'}
                         </h2>
-                        <button onClick={() => setDraft(null)} className="btn btn-circle btn-ghost btn-sm">✕</button>
+                        <button onClick={() => setDraft(null)} className="btn btn-circle btn-ghost btn-sm"><X size={16} className="shrink-0" /></button>
                     </div>
 
                     {/* Cuerpo Scrollable */}
@@ -626,13 +627,13 @@ export const ProductsManager: React.FC = () => {
                                     return (
                                         <button key={folder.id} onClick={() => toggleFolder(folder.id)}
                                             className={`btn btn-sm ${isSelected ? 'btn-primary' : 'btn-outline border-base-300'}`}>
-                                            {isSelected ? '✓ ' : ''}{folderName(folder)}
+                                            {isSelected && <Check size={14} className="shrink-0" />}{folderName(folder)}
                                         </button>
                                     );
                                 })}
                             </div>
                             {draft.folderIds.length === 0 && (
-                                <p className="text-xs text-warning font-bold">⚠️ Sin categoría el producto no aparece en el POS.</p>
+                                <p className="text-xs text-warning font-bold flex items-center gap-1"><TriangleAlert size={14} className="shrink-0" /> Sin categoría el producto no aparece en el POS.</p>
                             )}
                         </section>
 
@@ -671,13 +672,13 @@ export const ProductsManager: React.FC = () => {
                                                         onChange={e => updatePriceRow(index, { price: Number(e.target.value) })} />
                                                 </label>
                                                 {isVariant && (
-                                                    <button onClick={() => removeSize(index)} className="btn btn-square btn-ghost btn-sm text-error" title="Quitar tamaño">🗑️</button>
+                                                    <button onClick={() => removeSize(index)} className="btn btn-square btn-ghost btn-sm text-error" title="Quitar tamaño"><Trash size={16} className="shrink-0" /></button>
                                                 )}
                                             </div>
 
                                             {branches.length > 0 && (
-                                                <button onClick={() => setOpenBranchPrices(isOpen ? null : index)} className="text-xs link link-hover opacity-70">
-                                                    {isOpen ? '▾' : '▸'} Precio distinto por sucursal{customCount > 0 ? ` (${customCount})` : ''}
+                                                <button onClick={() => setOpenBranchPrices(isOpen ? null : index)} className="text-xs link link-hover opacity-70 inline-flex items-center gap-1">
+                                                    {isOpen ? <ChevronDown size={12} className="shrink-0" /> : <ChevronRight size={12} className="shrink-0" />} Precio distinto por sucursal{customCount > 0 ? ` (${customCount})` : ''}
                                                 </button>
                                             )}
                                             {isOpen && (
@@ -716,7 +717,7 @@ export const ProductsManager: React.FC = () => {
                                         <button key={mg.id} onClick={() => toggleModGroup(mg.id)}
                                             className={`btn btn-sm h-auto py-1 ${isSelected ? 'btn-primary' : 'btn-outline border-base-300'}`}>
                                             <span className="flex flex-col items-start leading-tight">
-                                                <span>{isSelected ? '✓ ' : '+ '}{mg.name}</span>
+                                                <span className="inline-flex items-center gap-1">{isSelected ? <Check size={12} className="shrink-0" /> : <Plus size={12} className="shrink-0" />}{mg.name}</span>
                                                 <span className="text-[9px] font-normal opacity-70">
                                                     {isExclusiveGroup(mg.id, modGroups) ? 'elige una' : 'varias'}
                                                 </span>
@@ -752,7 +753,7 @@ export const ProductsManager: React.FC = () => {
                                                 </label>
                                                 {newList.options.length > 1 && (
                                                     <button onClick={() => setNewList({ ...newList, options: newList.options.filter((_, i) => i !== index) })}
-                                                        className="btn btn-square btn-ghost btn-xs text-error">✕</button>
+                                                        className="btn btn-square btn-ghost btn-xs text-error"><X size={14} className="shrink-0" /></button>
                                                 )}
                                             </div>
                                         ))}
@@ -802,11 +803,11 @@ export const ProductsManager: React.FC = () => {
                     {/* Footer / Botones */}
                     <div className="p-3 border-t border-base-200 bg-base-200/50 flex gap-2">
                         {item.id && (
-                            <button onClick={() => handleDelete(item)} className="btn btn-ghost text-error">🗑️</button>
+                            <button onClick={() => handleDelete(item)} className="btn btn-ghost text-error"><Trash size={16} className="shrink-0" /></button>
                         )}
                         <button onClick={() => setDraft(null)} className="btn btn-ghost flex-1">Cancelar</button>
                         <button onClick={handleSave} disabled={isSaving} className="btn btn-primary flex-[2] shadow-lg shadow-primary/30">
-                            {isSaving ? 'Guardando...' : '💾 Guardar'}
+                            {isSaving ? 'Guardando...' : <><Save size={16} className="shrink-0" /> Guardar</>}
                         </button>
                     </div>
                 </div>
@@ -824,25 +825,26 @@ export const ProductsManager: React.FC = () => {
                   <p className="text-xs opacity-70">Precios, categoría y disponibilidad por sucursal. Incluye lo que se arma por ingredientes (crepas, waffles, hot cakes).</p>
               </div>
               <div className="flex gap-2 w-full sm:w-auto">
-                  <button onClick={openNewBuild} className="btn btn-outline btn-sm flex-1 sm:flex-none">+ 🛠️ Se arma</button>
+                  <button onClick={openNewBuild} className="btn btn-outline btn-sm flex-1 sm:flex-none">+ Se arma</button>
                   <button onClick={openNewItem} className="btn btn-primary btn-sm flex-1 sm:flex-none">+ Nuevo Producto</button>
               </div>
           </div>
 
           {/* Buscador y filtro */}
           <div className="flex flex-col sm:flex-row gap-2">
-              <input type="search" className="input input-bordered input-sm flex-1" placeholder="🔍 Buscar producto..."
+              <input type="search" className="input input-bordered input-sm flex-1" placeholder="Buscar producto..."
                   value={search} onChange={e => setSearch(e.target.value)} />
               <select className="select select-bordered select-sm" value={folderFilter} onChange={e => setFolderFilter(e.target.value)}>
                   <option value="all">Todas las categorías</option>
                   {folders.map(f => <option key={f.id} value={f.id}>{folderName(f)}</option>)}
-                  <option value="none">⚠️ Sin categoría ({orphanCount})</option>
+                  <option value="none">Sin categoría ({orphanCount})</option>
               </select>
           </div>
 
           {orphanCount > 0 && folderFilter !== 'none' && (
               <button onClick={() => setFolderFilter('none')} className="alert alert-warning py-2 text-xs sm:text-sm text-left">
-                  ⚠️ {orphanCount} producto{orphanCount === 1 ? '' : 's'} sin categoría no aparece{orphanCount === 1 ? '' : 'n'} en el POS. Toca para verlos.
+                  <TriangleAlert size={16} className="shrink-0" />
+                  <span>{orphanCount} producto{orphanCount === 1 ? '' : 's'} sin categoría no aparece{orphanCount === 1 ? '' : 'n'} en el POS. Toca para verlos.</span>
               </button>
           )}
 
@@ -865,7 +867,7 @@ export const ProductsManager: React.FC = () => {
                                   </div>
                                   <p className="text-xs opacity-60 truncate">{parentName(group.parent)}</p>
                                   <div className="flex gap-1 mt-1 flex-wrap">
-                                      <span className="badge badge-xs badge-secondary">🛠️ Se arma</span>
+                                      <span className="badge badge-xs badge-secondary gap-1"><Layers size={10} className="shrink-0" />Se arma</span>
                                       <span className="badge badge-xs badge-ghost truncate max-w-full">{rule?.name || 'Sin regla'}</span>
                                   </div>
                               </div>
@@ -891,7 +893,7 @@ export const ProductsManager: React.FC = () => {
                               <p className="text-xs opacity-60 truncate">
                                   {itemFolders.length > 0
                                       ? itemFolders.map(folderName).join(', ')
-                                      : <span className="text-warning font-bold">⚠️ No aparece en el POS</span>}
+                                      : <span className="text-warning font-bold inline-flex items-center gap-1"><TriangleAlert size={12} className="shrink-0" /> No aparece en el POS</span>}
                               </p>
 
                               {/* Indicadores de Sucursal rápidos */}
