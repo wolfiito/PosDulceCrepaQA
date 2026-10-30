@@ -7,7 +7,6 @@ export interface FixedPriceItem {
     cost?: number;
     description?: string;
     modifierGroups?: string[];
-    availableBranches?: string[]; 
     disabledIn?: string[];        
     branchPrices?: Record<string, number>;
   }
@@ -24,7 +23,6 @@ export interface FixedPriceItem {
       branchPrices?: Record<string, number>;
     }[];
     modifierGroups?: string[];
-    availableBranches?: string[]; 
     disabledIn?: string[];
   }
   

@@ -68,15 +68,26 @@ export const calculateCustomItemPrice = (
       isValid = false;
       ruleDescription = 'Elija ingredientes base';
     }
+    // Sin regla de precio no se puede cobrar: antes se vendía en $0 + extras
+    let ruleError: string | null = priceRule ? null : 'Regla de precio no encontrada';
+
     if (priceRule) {
         const sortedRules = [...priceRule.basePrices].sort((a, b) => b.count - a.count);
         const maxRule = sortedRules[0];
 
         if (maxRule && baseIngredientCount > maxRule.count) {
-            // HÍBRIDO: Usamos el tope de la lista y sumamos el incremento dinámico
-            const extraIngredients = baseIngredientCount - maxRule.count;
-            const increment = priceRule.incrementPerIngredient ?? 5;
-            basePrice = maxRule.price + (extraIngredients * increment);
+            // HÍBRIDO: Usamos el tope de la lista y sumamos el incremento dinámico.
+            // Sin incremento configurado, usamos el salto entre los dos últimos escalones.
+            const prevRule = sortedRules[1];
+            const increment = priceRule.incrementPerIngredient
+                ?? (prevRule ? (maxRule.price - prevRule.price) / (maxRule.count - prevRule.count) : undefined);
+
+            if (increment === undefined) {
+                ruleError = `Máximo ${maxRule.count} ingrediente${maxRule.count === 1 ? '' : 's'}`;
+            } else {
+                const extraIngredients = baseIngredientCount - maxRule.count;
+                basePrice = maxRule.price + (extraIngredients * increment);
+            }
         } else if (maxRule) {
             // TRADICIONAL: Buscamos en la lista (exact o más cercano por debajo)
             const matchedRule = sortedRules.find(r => baseIngredientCount >= r.count);
@@ -84,7 +95,14 @@ export const calculateCustomItemPrice = (
         } else if (priceRule.initialPrice !== undefined && priceRule.incrementPerIngredient !== undefined) {
             // LINEAL PURO: (Si basePrices está vacío)
             basePrice = priceRule.initialPrice + (Math.max(0, baseIngredientCount - 1) * priceRule.incrementPerIngredient);
+        } else {
+            ruleError = 'Regla de precio sin configurar';
         }
+    }
+
+    if (ruleError && baseIngredientCount > 0) {
+      isValid = false;
+      ruleDescription = ruleError;
     }
   }
   else {

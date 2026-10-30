@@ -143,8 +143,18 @@ const buildReceiptLines = (order: Order, branch?: ReceiptBranchInfo): ReceiptLin
 
     // --- 2. DATOS DE LA ORDEN ---
     const { date, time } = getFormattedDate(order);
-    const folio = `Folio: #${String(order.orderNumber ?? 0).padStart(4, '0')}`;
-    add(formatLine(folio, order.mode || ''), { bold: 1 });
+    const formatFolio = (n: number) => `#${String(n ?? 0).padStart(4, '0')}`;
+    const folios = order.mergedOrderNumbers && order.mergedOrderNumbers.length > 1
+        ? order.mergedOrderNumbers
+        : [order.orderNumber];
+
+    if (folios.length === 1) {
+        add(formatLine(`Folio: ${formatFolio(folios[0])}`, order.mode || ''), { bold: 1 });
+    } else {
+        // Cuenta con varias órdenes: todos los folios, ajustados al ancho
+        add(order.mode || '', { bold: 1 });
+        wrapText(`Folios: ${folios.map(formatFolio).join(', ')}`, MAX_CHARS).forEach(l => add(l, { bold: 1 }));
+    }
     add(formatLine(`Fecha: ${date}`, time));
     if (order.customerName) add(`Cliente: ${order.customerName}`);
     add(`Atendió: ${order.cashier || 'Cajero General'}`);

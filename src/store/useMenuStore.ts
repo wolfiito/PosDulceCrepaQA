@@ -58,6 +58,9 @@ export const useMenuStore = create<MenuState>()(
         (err) => {
             console.error("Error groups:", err);
             set({ error: "Error cargando categorías" });
+            // Damos la sección por terminada para no dejar la app cargando para siempre
+            loadedSections.groups = true;
+            checkLoadingStatus();
         }
     );
 
@@ -72,6 +75,8 @@ export const useMenuStore = create<MenuState>()(
         (err) => {
             console.error("Error items:", err);
             set({ error: "Error cargando productos" });
+            loadedSections.items = true;
+            checkLoadingStatus();
         }
     );
 
@@ -86,6 +91,8 @@ export const useMenuStore = create<MenuState>()(
         (err) => {
             console.error("Error modifiers:", err);
             set({ error: "Error cargando extras" });
+            loadedSections.modifiers = true;
+            checkLoadingStatus();
         }
     );
 
@@ -100,6 +107,8 @@ export const useMenuStore = create<MenuState>()(
         (err) => { 
             console.error("Error rules:", err);
             set({ error: "Error cargando reglas de precio" });
+            loadedSections.rules = true;
+            checkLoadingStatus();
         }
     );
 

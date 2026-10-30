@@ -102,13 +102,8 @@ const modifiersForCurrentStep = useMemo(() => {
 
           const inv = stockData[mod.id];
           const isTracked = mod.trackStock === true || inv?.trackStock === true;
-          const realStock = Number(inv?.currentStock) || 0; 
-          
-          // (Mantenemos tu chismoso Turín intacto 🐰)
-          if (mod.name.toLowerCase().includes('turin') || mod.name.toLowerCase().includes('turín')) {
-              console.log(`🐰 CHISMOSO TURÍN:`, { mod, isTracked, realStock });
-          }
-          
+          const realStock = Number(inv?.currentStock) || 0;
+
           if (isTracked && realStock <= 0) {
               return false; 
           }
