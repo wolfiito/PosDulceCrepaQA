@@ -35,7 +35,12 @@ export const OrdersScreen: React.FC = () => {
   // Seguridad
   const { currentShift } = useShiftStore();
   const { openShiftModal } = useUIStore();
-  const { activeBranchId } = useAuthStore();
+  const { activeBranchId, currentUser } = useAuthStore();
+
+  // Datos de sucursal listos para el encabezado del ticket
+  useEffect(() => {
+    printService.preloadBranch(activeBranchId);
+  }, [activeBranchId]);
 
   useEffect(() => {
     // Escuchar órdenes pendientes
@@ -185,7 +190,8 @@ export const OrdersScreen: React.FC = () => {
             customerName: selectedGroup.customerName,
             createdAt: new Date(), 
             payment: paymentDetails,
-            cashier: "Cajero"
+            cashier: currentUser?.name || "Cajero",
+            branchId: selectedGroup.orders[0].branchId || activeBranchId
         };
         
         printService.printReceipt(consolidatedOrder as any);

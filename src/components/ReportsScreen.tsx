@@ -246,6 +246,9 @@ export const ReportsScreen: React.FC = () => {
 
   useEffect(() => { handleSearch(); }, [startDate, endDate, activeBranchId]); // Se recarga si cambia sucursal
 
+  // Datos de sucursal listos para el encabezado del ticket al reimprimir
+  useEffect(() => { printService.preloadBranch(activeBranchId); }, [activeBranchId]);
+
   const formatDateSafe = (dateVal: any) => {
       const date = getSafeDate(dateVal);
       return date.toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute:'2-digit' });
