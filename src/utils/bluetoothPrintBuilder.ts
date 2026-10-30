@@ -1,6 +1,7 @@
 // src/utils/bluetoothPrintBuilder.ts
 import { Timestamp } from '../firebase';
 import type { Order } from '../types/order';
+import { getBranchPrice } from './pricing';
 
 // CONFIGURACIÓN DE ANCHO (58mm suele ser 32 caracteres con fuente normal)
 const MAX_CHARS = 32;
@@ -60,8 +61,10 @@ export const buildReceiptJSON = (order: Order) => {
     const { date, time } = getFormattedDate(order);
     const cashierName = order.cashier || 'Cajero General';
     // --- 1. ENCABEZADO ---
+    // Type 1 = Imagen. Thermer la descarga desde la URL pública (requiere internet al imprimir)
+    add({ type: 1, path: `${window.location.origin}/logo-dulcecrepa-mono.png`, align: 1 });
     // Format 2 = Doble Ancho y Alto (Gigante)
-    add({ type: 0, content: "DULCE CREPA", bold: 1, align: 1, format: 2 }); 
+    add({ type: 0, content: "DULCE CREPA", bold: 1, align: 1, format: 2 });
     add({ type: 0, content: "Sucursal: Centro", bold: 0, align: 0, format: 0 });
     add({ type: 0, content: `Fecha: ${date}`, bold: 0, align: 0, format: 0 });
     add({ type: 0, content: `Hora: ${time}`, bold: 0, align: 0, format: 0 });
@@ -88,7 +91,8 @@ export const buildReceiptJSON = (order: Order) => {
         
          item.details.selectedModifiers.forEach(mod => {
             const modName = ` + ${mod.name}`;
-            const modPrice = mod.price > 0 ? `$${mod.price.toFixed(2)}` : '$0.00';
+            const branchModPrice = getBranchPrice(mod.price, mod.branchPrices, order.branchId);
+            const modPrice = branchModPrice > 0 ? `$${branchModPrice.toFixed(2)}` : '$0.00';
              // Format 0 (Normal) para que se lea bien, Bold activado
              add({ 
                 type: 0, 
