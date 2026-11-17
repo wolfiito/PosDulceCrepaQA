@@ -4,7 +4,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import type { Order } from '../types/order';
 import { Timestamp } from '../firebase';
-import { getBranchPrice, splitItemPrice } from '../utils/pricing';
+import { getBranchPrice } from '../utils/pricing';
 
 interface Props {
   order: Order | null;
@@ -45,42 +45,30 @@ export const ReceiptTemplate: React.FC<Props> = ({ order }) => {
 
       {/* Lista de Productos */}
       <div className="flex flex-col gap-2 mb-2 print-text">
-        {order.items.map((item, index) => {
-          const qty = item.quantity || 1;
-          // Precio base en el renglón del producto; extras con costo aparte y subtotal al final
-          const { base, extras } = splitItemPrice(item, order.branchId);
-          return (
+        {order.items.map((item, index) => (
           <div key={`${item.id}-${index}`} className="flex flex-col">
             <div className="flex justify-between items-start font-bold">
               <span className="w-[75%] leading-tight">
-                {qty} {item.baseName}
+                {item.quantity || 1} {item.baseName}
                 {item.details?.variantName && ` (${item.details.variantName})`}
               </span>
-              <span>${(base * qty).toFixed(2)}</span>
+              <span>${(item.finalPrice * (item.quantity || 1)).toFixed(2)}</span>
             </div>
-
+            
             {item.details?.selectedModifiers && item.details.selectedModifiers.length > 0 && (
               <div className="pl-2 text-[10px] leading-tight mt-1">
                 {item.details.selectedModifiers.map((mod, idx) => {
                   const modPrice = getBranchPrice(mod.price, mod.branchPrices, order.branchId);
                   return (
-                    <div key={idx} className="flex justify-between">
-                      <span>+ {mod.name}</span>
-                      {modPrice > 0 && <span>${(modPrice * qty).toFixed(2)}</span>}
+                    <div key={idx}>
+                      + {mod.name} {modPrice > 0 && `($${modPrice})`}
                     </div>
                   );
                 })}
               </div>
             )}
-            {extras > 0 && (
-              <div className="flex justify-end gap-2 font-bold">
-                <span>Subtotal</span>
-                <span>${(item.finalPrice * qty).toFixed(2)}</span>
-              </div>
-            )}
           </div>
-          );
-        })}
+        ))}
       </div>
 
       <div className="print-line" />
