@@ -17,7 +17,7 @@ const formatLine = (leftText: string, rightText: string): string => {
     return `${leftText}${spaces}${rightText}`;
   };
 
-  const getFormattedDate = (order: Order) => {
+export const getFormattedDate = (order: Order) => {
     try {
         let d: Date;
 
@@ -59,7 +59,7 @@ interface ReceiptLine {
     format: 0 | 1 | 2;  // 0 Normal, 1 Doble Alto, 2 Doble Ancho y Alto
 }
 
-const LOGO_PATH = '/logo-dulcecrepa-mono.png';
+export const LOGO_PATH = '/logo-dulcecrepa-mono.png';
 const DIVIDER = "-".repeat(MAX_CHARS);
 const DOUBLE_DIVIDER = "=".repeat(MAX_CHARS);
 
@@ -100,7 +100,7 @@ const wrapText = (text: string, width: number): string[] => {
  * Junta en un solo renglón los productos idénticos (mismo producto, variante,
  * precio y extras). Pasa al cobrar varias órdenes de un mismo cliente.
  */
-const consolidateItems = (items: TicketItem[]): TicketItem[] => {
+export const consolidateItems = (items: TicketItem[]): TicketItem[] => {
     const grouped = new Map<string, TicketItem>();
 
     items.forEach(item => {
@@ -123,7 +123,7 @@ const consolidateItems = (items: TicketItem[]): TicketItem[] => {
     return Array.from(grouped.values());
 };
 
-const PAYMENT_LABELS: Record<string, string> = {
+export const PAYMENT_LABELS: Record<string, string> = {
     cash: 'Efectivo',
     card: 'Tarjeta',
     transfer: 'Transferencia'
