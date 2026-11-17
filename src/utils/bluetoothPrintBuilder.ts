@@ -252,8 +252,10 @@ export const buildReceiptJSON = (order: Order, branch?: ReceiptBranchInfo) => {
     add({ type: 1, path: `${window.location.origin}${LOGO_PATH}`, align: 1 });
 
     buildReceiptLines(order, branch).forEach(line => {
-        // Thermer necesita "\n" para imprimir un renglón vacío
-        add({ type: 0, ...line, content: line.content || "\n" });
+        // Thermer junta los espacios repetidos (como HTML) y se pierden las columnas y la
+        // sangría; con espacios duros (U+00A0) se respetan. Necesita "\n" para un renglón vacío.
+        const content = line.content.replace(/ {2,}/g, spaces => ' '.repeat(spaces.length));
+        add({ type: 0, ...line, content: content || "\n" });
     });
 
     return JSON.stringify(data);
