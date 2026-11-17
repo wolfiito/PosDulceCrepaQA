@@ -2,7 +2,7 @@
 import { Timestamp } from '../firebase';
 import type { Order } from '../types/order';
 import type { TicketItem } from '../types/menu';
-import { getBranchPrice } from './pricing';
+import { getBranchPrice, splitItemPrice } from './pricing';
 
 // CONFIGURACIÓN DE ANCHO (58mm suele ser 32 caracteres con fuente normal)
 const MAX_CHARS = 32;
@@ -170,18 +170,28 @@ const buildReceiptLines = (order: Order, branch?: ReceiptBranchInfo): ReceiptLin
         const variant = item.details?.variantName ? ` (${item.details.variantName})` : '';
         const [firstLine, ...restLines] = wrapText(`${item.baseName}${variant}`, DESC_WIDTH);
 
-        add(itemRow(String(qty), firstLine, money(item.finalPrice * qty)), { bold: 1 });
+        // El renglón del producto lleva solo su precio base; cada extra con costo va en
+        // la columna de importe y al final el subtotal, para que la cuenta cuadre a la vista
+        const { base, extras } = splitItemPrice(item, order.branchId);
+        add(itemRow(String(qty), firstLine, money(base * qty)), { bold: 1 });
         restLines.forEach(l => add(itemRow('', l, '')));
 
         // Extras con el precio que se cobró en la sucursal de la orden
         item.details?.selectedModifiers?.forEach(mod => {
             const modPrice = getBranchPrice(mod.price, mod.branchPrices, order.branchId);
-            const modText = modPrice > 0 ? `+ ${mod.name} ${money(modPrice)}` : `+ ${mod.name}`;
-            wrapText(modText, MAX_CHARS - QTY_WIDTH).forEach(l => add(' '.repeat(QTY_WIDTH) + l));
+            if (modPrice > 0) {
+                // Con costo: el importe va en su columna, el nombre se ajusta a DESCRIPCION
+                const [modFirst, ...modRest] = wrapText(`+ ${mod.name}`, DESC_WIDTH);
+                add(itemRow('', modFirst, money(modPrice * qty)));
+                modRest.forEach(l => add(itemRow('', `  ${l}`, '')));
+            } else {
+                wrapText(`+ ${mod.name}`, MAX_CHARS - QTY_WIDTH).forEach(l => add(' '.repeat(QTY_WIDTH) + l));
+            }
         });
 
         // Precio unitario cuando hay más de una pieza
-        if (qty > 1) add(' '.repeat(QTY_WIDTH) + `${qty} x ${money(item.finalPrice)}`);
+        if (qty > 1) add(itemRow('', `${qty} x ${money(item.finalPrice)}`, ''));
+        if (extras > 0) add(itemRow('', 'Subtotal'.padStart(DESC_WIDTH - 1), money(item.finalPrice * qty)), { bold: 1 });
     });
 
     add(DIVIDER);
