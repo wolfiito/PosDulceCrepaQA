@@ -2,6 +2,7 @@
 
 import { buildReceiptJSON, buildReceiptString, buildZReportJSON, buildZReportString } from '../utils/bluetoothPrintBuilder';
 import type { ReceiptBranchInfo } from '../utils/bluetoothPrintBuilder';
+import { buildReceiptImageJSON } from '../utils/receiptImage';
 import type { Order } from '../types/order';
 import type { Branch } from '../types/branch';
 import { db, doc, getDoc } from '../firebase';
@@ -47,9 +48,10 @@ export const printService = {
 
     try {
       if (isIOS) {
-            // --- IPHONE (NO TOCAR) ---
-            // Sigue funcionando como antes
-            const jsonString = buildReceiptJSON(order, branch);
+            // --- IPHONE (Thermer) ---
+            // El ticket va como imagen (columnas y logo a nuestro gusto). Todo es síncrono
+            // para que el enlace a Thermer se abra sin demoras; si el dibujo falla, va en texto.
+            const jsonString = buildReceiptImageJSON(order, branch) ?? buildReceiptJSON(order, branch);
             const encodedData = encodeURIComponent(jsonString);
             const deepLink = `thermer://?data=${encodedData}`;
             openDeepLink(deepLink);
@@ -71,7 +73,7 @@ export const printService = {
             }
       } else {
             // --- PC / DESKTOP ---
-            const jsonString = buildReceiptJSON(order, branch);
+            const jsonString = buildReceiptImageJSON(order, branch) ?? buildReceiptJSON(order, branch);
             const encodedData = encodeURIComponent(jsonString);
             openDeepLink(`thermer://?data=${encodedData}`);
       }
