@@ -1,6 +1,24 @@
 
 import { MODIFIER_GROUPS, EXCLUSIVE_BASE_GROUPS } from '../constants/menuConstants';
-import type { MenuGroup, Modifier, PriceRule } from '../types/menu';
+import type { MenuGroup, Modifier, PriceRule, TicketItem } from '../types/menu';
+
+/**
+ * Separa el precio unitario de un artículo del ticket en base + extras con costo,
+ * para imprimirlos por separado (ej. crepa $60 + Mini conejo $10 = $70).
+ * finalPrice siempre se arma como base + extras; si en una orden vieja los extras
+ * no cuadran, se regresa todo como base para no mostrar un desglose incorrecto.
+ */
+export const splitItemPrice = (
+  item: TicketItem,
+  branchId?: string | null
+): { base: number; extras: number } => {
+  const extras = (item.details?.selectedModifiers || []).reduce(
+    (sum, mod) => sum + getBranchPrice(mod.price, mod.branchPrices, branchId),
+    0
+  );
+  if (extras <= 0 || extras > item.finalPrice) return { base: item.finalPrice, extras: 0 };
+  return { base: item.finalPrice - extras, extras };
+};
 
 interface PriceResult {
   price: number;
